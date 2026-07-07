@@ -5,7 +5,7 @@ import Home from "./pages/Home";
 <<<<<<< HEAD
 import Login from "./pages/Login";
 import About from "./pages/About";
-import Courses from "./pages/Courses";
+import Courses from "./pages/Courses"
  
 =======
 import Register from "./pages/Register";
