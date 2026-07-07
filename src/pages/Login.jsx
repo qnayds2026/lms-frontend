@@ -21,11 +21,12 @@ export default function Login() {
 
     try {
       const res = await axiosInstance.post("/auth/login", formData);
+      console.log("LOGIN SUCCESS RESPONSE:", res.data);
 
       // Adjust these keys to match your backend's actual response shape.
       // Common shapes: { token, user } or { data: { token, user } }
-      const token = res.data?.token;
-      const user = res.data?.user;
+      const token = res.data?.token || res.data?.data?.token;
+      const user = res.data?.user || res.data?.data;
 
       if (!token) {
         throw new Error("No token returned from server");
@@ -40,6 +41,10 @@ export default function Login() {
       // (e.g. "/dashboard" once that page is protected/ready)
       navigate("/dashboard");
     } catch (err) {
+      console.log("LOGIN ERROR message:", err?.message);
+      console.log("LOGIN ERROR code:", err?.code);
+      console.log("LOGIN ERROR response status:", err?.response?.status);
+      console.log("LOGIN ERROR response data:", err?.response?.data);
       setError(
         err?.response?.data?.message || "Invalid email or password. Please try again."
       );
