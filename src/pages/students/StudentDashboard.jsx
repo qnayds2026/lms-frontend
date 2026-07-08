@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import {
   BookOpen,
@@ -46,9 +47,9 @@ const COLOR_MAP = {
 };
 
 const ACTIONS = [
-  { label: "Browse Courses", icon: Compass, primary: true },
-  { label: "My Courses", icon: GraduationCap, primary: false },
-  { label: "Notifications", icon: BellRing, primary: false },
+  { label: "Browse Courses", icon: Compass, primary: true, path: "/courses" },
+  { label: "My Courses", icon: GraduationCap, primary: false, path: "/student/my-courses" },
+  { label: "Notifications", icon: BellRing, primary: false, path: null },
 ];
 
 function getGreeting() {
@@ -133,6 +134,7 @@ function CourseCard({ course }) {
 }
 
 const StudentDashboard = () => {
+  const navigate = useNavigate();
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [courses, setCourses] = useState([]);
@@ -230,9 +232,10 @@ const StudentDashboard = () => {
         </h2>
 
         <div className="flex flex-wrap gap-4 mt-5">
-          {ACTIONS.map(({ label, icon: Icon, primary }) => (
+          {ACTIONS.map(({ label, icon: Icon, primary, path }) => (
             <button
               key={label}
+              onClick={() => path && navigate(path)}
               className={`inline-flex items-center gap-2 px-5 py-3 rounded-lg font-medium text-sm transition ${
                 primary
                   ? "bg-sky-600 hover:bg-sky-700 text-white"
@@ -261,7 +264,10 @@ const StudentDashboard = () => {
               Explore courses
             </h2>
           </div>
-          <button className="text-sm font-medium text-sky-600 hover:text-sky-700 inline-flex items-center gap-1">
+          <button
+            onClick={() => navigate("/courses")}
+            className="text-sm font-medium text-sky-600 hover:text-sky-700 inline-flex items-center gap-1"
+          >
             View all <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>

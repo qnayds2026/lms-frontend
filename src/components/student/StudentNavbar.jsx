@@ -15,6 +15,13 @@ const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Space
 
 const display = { fontFamily: "'Space Grotesk', sans-serif" };
 
+const NAV_LINKS = [
+  { label: "Dashboard", href: "/student/dashboard" },
+  { label: "My Courses", href: "/student/my-courses" },
+  { label: "Live Classes", href: "/student/live-classes" },
+  { label: "Notifications", href: "/student/notifications" },
+];
+
 export default function StudentNavbar({ user, unreadCount = 0, onLogout }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -40,7 +47,7 @@ export default function StudentNavbar({ user, unreadCount = 0, onLogout }) {
           className="flex items-center gap-2 shrink-0"
         >
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-600">
-            <Terminal className="h-4.5 w-4.5 text-white" strokeWidth={2} />
+            <Terminal className="h-[18px] w-[18px] text-white" strokeWidth={2} />
           </span>
           <span
             className="text-lg font-semibold tracking-tight text-slate-900"
@@ -57,7 +64,7 @@ export default function StudentNavbar({ user, unreadCount = 0, onLogout }) {
             className="relative flex items-center justify-center h-9 w-9 rounded-md text-slate-500 hover:text-sky-600 hover:bg-sky-50 transition-colors"
             aria-label="Notifications"
           >
-            <Bell className="h-4.5 w-4.5" />
+            <Bell className="h-[18px] w-[18px]" />
             {unreadCount > 0 && (
               <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-amber-500" />
             )}
@@ -74,7 +81,7 @@ export default function StudentNavbar({ user, unreadCount = 0, onLogout }) {
               >
                 {initials}
               </span>
-              <span className="text-sm font-medium text-slate-700 max-w-25 truncate">
+              <span className="text-sm font-medium text-slate-700 max-w-[100px] truncate">
                 {user?.name || "Student"}
               </span>
               <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
