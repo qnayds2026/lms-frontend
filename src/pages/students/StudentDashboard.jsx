@@ -49,7 +49,7 @@ const COLOR_MAP = {
 const ACTIONS = [
   { label: "Browse Courses", icon: Compass, primary: true, path: "/courses" },
   { label: "My Courses", icon: GraduationCap, primary: false, path: "/student/my-courses" },
-  { label: "Notifications", icon: BellRing, primary: false, path: null },
+  { label: "Notifications", icon: BellRing, primary: false, path: "/student/notifications" },
 ];
 
 function getGreeting() {
