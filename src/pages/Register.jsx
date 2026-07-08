@@ -62,19 +62,23 @@ const Register = () => {
         role: formData.role,
       };
 
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.data));
       const res = await api.post("/auth/register", payload);
 
-      console.log(res.data);
+      const { token, user } = res.data.data;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      console.log("Response:", res.data);
+      console.log("User:", user);
+      console.log("Role:", user.role);
+      console.log("Token:", token);
 
       alert("Registration successful");
 
-      const role = res.data.data.role;
-
-      if (role === "ADMIN") {
+      if (user.role === "ADMIN") {
         navigate("/admin/dashboard");
-      } else if (role === "INSTRUCTOR") {
+      } else if (user.role === "INSTRUCTOR") {
         navigate("/instructor/dashboard");
       } else {
         navigate("/student/dashboard");
@@ -257,7 +261,7 @@ const Register = () => {
           <p className="text-center mt-6 text-sm text-slate-500">
             Already have an account?{" "}
             <Link
-              href="/login"
+              to="/login"
               className="text-sky-600 font-medium hover:text-sky-700"
             >
               Log in
