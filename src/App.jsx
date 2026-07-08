@@ -10,6 +10,7 @@ import Register from "./pages/Register";
 import StudentDashboard from "./pages/students/StudentDashboard";
 import StudentLayout from "./layoutes/studentLayoutes/StudentLayout";
 import StudentMyCourses from "./pages/students/StudentMyCourses";
+import StudentLiveClasses from "./pages/students/Studentliveclass";
 import Notifications from "./pages/students/Notifications";
 
 const App = () => {
@@ -27,6 +28,7 @@ const App = () => {
           <Route path="dashboard" element={<StudentDashboard />} />
           <Route path="my-courses" element={<StudentMyCourses />} />
           <Route path="notifications" element={<Notifications />} />
+          <Route path="live-classes" element={<StudentLiveClasses/>}/>
         </Route>
 
         {/* Auth pages rendered standalone, without the public Navbar/Footer */}
