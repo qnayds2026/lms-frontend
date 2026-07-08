@@ -12,6 +12,8 @@ import {
   Terminal,
   Clock,
   Layers,
+  Radio,
+  Videotape,
 } from "lucide-react";
 
 const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');`;
@@ -48,8 +50,30 @@ const COLOR_MAP = {
 
 const ACTIONS = [
   { label: "Browse Courses", icon: Compass, primary: true, path: "/courses" },
-  { label: "My Courses", icon: GraduationCap, primary: false, path: "/student/my-courses" },
-  { label: "Notifications", icon: BellRing, primary: false, path: null },
+  {
+    label: "My Courses",
+    icon: GraduationCap,
+    primary: false,
+    path: "/student/my-courses",
+  },
+  {
+    label: "Live Classes",
+    icon: Radio,
+    primary: false,
+    path: "/student/live-classes",
+  },
+  {
+    label: "Recordings",
+    icon: Videotape,
+    primary: false,
+    path: "/student/recordings",
+  },
+  {
+    label: "Notifications",
+    icon: BellRing,
+    primary: false,
+    path: "/student/notifications",
+  },
 ];
 
 function getGreeting() {
