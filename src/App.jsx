@@ -7,7 +7,8 @@ import Courses from "./pages/Courses";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-
+import StudentDashboard from "./pages/students/StudentDashboard";
+import StudentLayout from "./layoutes/studentLayoutes/StudentLayout";
 
 const App = () => {
   return (
@@ -17,6 +18,11 @@ const App = () => {
           <Route index element={<Home />} />
           <Route path="about" element={<About />} />
           <Route path="courses" element={<Courses />} />
+        </Route>
+
+        {/* Student */}
+        <Route path="/student" element={<StudentLayout />}>
+          <Route path="dashboard" element={<StudentDashboard />} />
         </Route>
 
         {/* Auth pages rendered standalone, without the public Navbar/Footer */}

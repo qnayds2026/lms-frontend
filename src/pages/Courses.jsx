@@ -50,7 +50,6 @@ const coursesData = [
     duration: "30 Days",
     level: "Beginner",
   },
- 
 ];
 
 function CourseCard({ course }) {
