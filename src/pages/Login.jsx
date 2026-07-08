@@ -21,7 +21,6 @@ export default function Login() {
 
     try {
       const res = await axiosInstance.post("/auth/login", formData);
-      console.log("LOGIN SUCCESS RESPONSE:", res.data);
 
       // Adjust these keys to match your backend's actual response shape.
       // Common shapes: { token, user } or { data: { token, user } }
@@ -37,14 +36,15 @@ export default function Login() {
         localStorage.setItem("user", JSON.stringify(user));
       }
 
-      // Redirect after successful login — change to wherever makes sense
-      // (e.g. "/dashboard" once that page is protected/ready)
-      navigate("/dashboard");
+      // Redirect based on role, matching Register.jsx's behavior
+      if (user?.role === "ADMIN") {
+        navigate("/admin/dashboard");
+      } else if (user?.role === "INSTRUCTOR") {
+        navigate("/instructor/dashboard");
+      } else {
+        navigate("/student/dashboard");
+      }
     } catch (err) {
-      console.log("LOGIN ERROR message:", err?.message);
-      console.log("LOGIN ERROR code:", err?.code);
-      console.log("LOGIN ERROR response status:", err?.response?.status);
-      console.log("LOGIN ERROR response data:", err?.response?.data);
       setError(
         err?.response?.data?.message || "Invalid email or password. Please try again."
       );
