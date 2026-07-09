@@ -29,8 +29,8 @@ const App = () => {
           <Route path="dashboard" element={<StudentDashboard />} />
           <Route path="my-courses" element={<StudentMyCourses />} />
           <Route path="notifications" element={<Notifications />} />
-          <Route path="live-classes" element={<StudentLiveClasses/>}/>
-          <Route path="recordings" element={<StudentRecordings/>}/>
+          <Route path="live-classes" element={<StudentLiveClasses />} />
+          <Route path="recordings/:courseId" element={<StudentRecordings />} />
         </Route>
 
         {/* Auth pages rendered standalone, without the public Navbar/Footer */}
