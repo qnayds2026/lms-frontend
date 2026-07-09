@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { CheckCircle2, Circle, ChevronLeft, Lock, Terminal } from "lucide-react";
+import {
+  CheckCircle2,
+  Circle,
+  ChevronLeft,
+  Lock,
+  Terminal,
+} from "lucide-react";
 import api from "../../api/axios";
 
 const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');`;
@@ -32,8 +38,8 @@ const StudentRecordings = () => {
             api
               .get(`/recordings/module/${m.id}`)
               .then((res) => res.data)
-              .catch(() => [])
-          )
+              .catch(() => []),
+          ),
         );
 
         const modulesWithRecordings = moduleList.map((m, i) => ({
@@ -44,12 +50,14 @@ const StudentRecordings = () => {
 
         setModules(modulesWithRecordings);
 
-        const firstRecording = modulesWithRecordings.find((m) => m.recordings.length > 0)
-          ?.recordings[0];
+        const firstRecording = modulesWithRecordings.find(
+          (m) => m.recordings.length > 0,
+        )?.recordings[0];
         if (firstRecording) setActiveRecordingId(firstRecording.id);
       } catch (err) {
         setError(
-          err?.response?.data?.message || "Failed to load this course. Please try again."
+          err?.response?.data?.message ||
+            "Failed to load this course. Please try again.",
         );
       } finally {
         setLoading(false);
@@ -59,11 +67,13 @@ const StudentRecordings = () => {
   }, [courseId]);
 
   const allRecordings = modules.flatMap((m) =>
-    m.recordings.map((r) => ({ ...r, moduleTitle: m.title }))
+    m.recordings.map((r) => ({ ...r, moduleTitle: m.title })),
   );
 
   const activeRecording = allRecordings.find((r) => r.id === activeRecordingId);
-  const activeIndex = allRecordings.findIndex((r) => r.id === activeRecordingId);
+  const activeIndex = allRecordings.findIndex(
+    (r) => r.id === activeRecordingId,
+  );
 
   if (loading) {
     return (
@@ -127,16 +137,23 @@ const StudentRecordings = () => {
             >
               <Terminal className="w-3.5 h-3.5" /> {course?.title}
             </span>
-            <h1 className="mt-3 text-2xl font-semibold text-slate-900" style={display}>
+            <h1
+              className="mt-3 text-2xl font-semibold text-slate-900"
+              style={display}
+            >
               {activeRecording?.title || "Select a lesson"}
             </h1>
             {activeRecording?.description && (
-              <p className="mt-2 text-sm text-slate-500">{activeRecording.description}</p>
+              <p className="mt-2 text-sm text-slate-500">
+                {activeRecording.description}
+              </p>
             )}
             {allRecordings.length > 0 && (
               <p className="mt-2 text-xs text-slate-400" style={mono}>
                 Lesson {activeIndex + 1} of {allRecordings.length}
-                {activeRecording?.moduleTitle ? ` · ${activeRecording.moduleTitle}` : ""}
+                {activeRecording?.moduleTitle
+                  ? ` · ${activeRecording.moduleTitle}`
+                  : ""}
               </p>
             )}
           </div>
@@ -145,7 +162,9 @@ const StudentRecordings = () => {
         {/* Course content sidebar */}
         <aside className="rounded-2xl border border-slate-200 bg-white h-fit shadow-sm">
           <div className="border-b border-slate-100 px-4 py-4">
-            <h2 className="text-sm font-semibold text-slate-900">Course content</h2>
+            <h2 className="text-sm font-semibold text-slate-900">
+              Course content
+            </h2>
             <p className="text-xs text-slate-500 mt-0.5">
               {allRecordings.length} lessons across {modules.length} modules
             </p>
@@ -187,13 +206,17 @@ const StudentRecordings = () => {
                           <div className="flex-1 min-w-0">
                             <p
                               className={`text-sm truncate ${
-                                isActive ? "font-semibold text-slate-900" : "text-slate-700"
+                                isActive
+                                  ? "font-semibold text-slate-900"
+                                  : "text-slate-700"
                               }`}
                             >
                               {rec.title}
                             </p>
                             {rec.duration && (
-                              <p className="text-xs text-slate-400">{rec.duration}</p>
+                              <p className="text-xs text-slate-400">
+                                {rec.duration}
+                              </p>
                             )}
                           </div>
                         </button>

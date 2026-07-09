@@ -63,12 +63,6 @@ const ACTIONS = [
     path: "/student/live-classes",
   },
   {
-    label: "Recordings",
-    icon: Videotape,
-    primary: false,
-    path: "/student/recordings",
-  },
-  {
     label: "Notifications",
     icon: BellRing,
     primary: false,
