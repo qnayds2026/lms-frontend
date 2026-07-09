@@ -134,7 +134,7 @@ const StudentMyCourses = () => {
 
                 {status === "ACTIVE" || status === "COMPLETED" ? (
                   <Link
-                    to={`/student/learn/${courseId}`}
+                    to={`/student/recordings/${courseId}`}
                     className="shrink-0 inline-flex items-center gap-1 text-sm font-semibold text-sky-600 hover:gap-2 transition-all"
                   >
                     {status === "COMPLETED" ? "Review" : "Continue"}

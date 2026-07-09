@@ -11,6 +11,7 @@ import StudentDashboard from "./pages/students/StudentDashboard";
 import StudentLayout from "./layoutes/studentLayoutes/StudentLayout";
 import StudentMyCourses from "./pages/students/StudentMyCourses";
 import StudentLiveClasses from "./pages/students/Studentliveclass";
+import StudentRecordings from "./pages/students/StudentRecordings";
 import Notifications from "./pages/students/Notifications";
 
 const App = () => {
@@ -29,6 +30,7 @@ const App = () => {
           <Route path="my-courses" element={<StudentMyCourses />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="live-classes" element={<StudentLiveClasses/>}/>
+          <Route path="recordings" element={<StudentRecordings/>}/>
         </Route>
 
         {/* Auth pages rendered standalone, without the public Navbar/Footer */}
