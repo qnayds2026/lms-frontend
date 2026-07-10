@@ -22,10 +22,9 @@ export default function Login() {
     try {
       const res = await axiosInstance.post("/auth/login", formData);
 
-      // Adjust these keys to match your backend's actual response shape.
-      // Common shapes: { token, user } or { data: { token, user } }
+      // Backend response shape: { success, message, data: { token, user } }
       const token = res.data?.token || res.data?.data?.token;
-      const user = res.data?.user || res.data?.data;
+      const user = res.data?.user || res.data?.data?.user;
 
       if (!token) {
         throw new Error("No token returned from server");
