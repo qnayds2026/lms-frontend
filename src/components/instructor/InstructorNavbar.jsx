@@ -2,13 +2,11 @@ import { useEffect, useState } from "react";
 import {
   Menu,
   X,
-  Terminal,
   Phone,
   Bell,
   Pencil,
   ChevronDown,
   User,
-  Settings,
   ShieldCheck,
   LogOut,
 } from "lucide-react";
@@ -28,7 +26,11 @@ const NAV_LINKS = [
   { label: "my-students", href: "/instructor/my-students" },
 ];
 
-export default function InstructorNavbar({ unreadCount = 0, onLogout }) {
+export default function InstructorNavbar({
+  unreadCount = 0,
+  onLogout,
+  onMenuClick,
+}) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -80,26 +82,24 @@ export default function InstructorNavbar({ unreadCount = 0, onLogout }) {
     navigate("/login");
   };
 
+  const unreadNotifications = notification.filter(
+    (item) => !item.isRead,
+  ).length;
+
   return (
     <>
       <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur border-b border-slate-200">
         <style>{FONT_IMPORT}</style>
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
           {/* Logo */}
-          <Link
-            to="/student/dashboard"
-            className="flex items-center gap-2 shrink-0"
-          >
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-600">
-              <Terminal className="h-4.5 w-4.5 text-white" strokeWidth={2} />
-            </span>
-            <span
-              className="text-lg font-semibold tracking-tight text-slate-900"
+          <div className="flex items-center gap-3">
+            <h1
+              className="text-lg font-semibold text-slate-900"
               style={display}
             >
-              QNAYDS
-            </span>
-          </Link>
+              Instructor Dashboard
+            </h1>
+          </div>
 
           {/* Right: notifications + profile */}
           <div className="hidden md:flex items-center gap-2">
@@ -109,8 +109,10 @@ export default function InstructorNavbar({ unreadCount = 0, onLogout }) {
               aria-label="Notifications"
             >
               <Bell className="h-4.5 w-4.5" />
-              {unreadCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-amber-500" />
+              {unreadNotifications > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center">
+                  {unreadNotifications}
+                </span>
               )}
             </button>
 
@@ -301,7 +303,7 @@ export default function InstructorNavbar({ unreadCount = 0, onLogout }) {
                 Edit Profile
               </button>
               <button
-                onClick={onLogout}
+                onClick={handleLogout}
                 className="mt-3 w-full border border-red-200 text-red-500 hover:bg-red-50 py-3 rounded-lg font-medium transition inline-flex items-center justify-center gap-2"
               >
                 <LogOut className="w-4 h-4" />
