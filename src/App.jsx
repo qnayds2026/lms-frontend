@@ -13,6 +13,9 @@ import StudentMyCourses from "./pages/students/StudentMyCourses";
 import StudentLiveClasses from "./pages/students/Studentliveclass";
 import StudentRecordings from "./pages/students/StudentRecordings";
 import Notifications from "./pages/students/Notifications";
+import InstructorDashboard from "./pages/instructors/InstructorDashboard";
+import InstructorManageRecordings from "./pages/instructors/InstructorManageRecordings";
+import InstructorMyStudents from "./pages/instructors/InstructorMystudent";
 
 const App = () => {
   return (
@@ -32,6 +35,15 @@ const App = () => {
           <Route path="live-classes" element={<StudentLiveClasses />} />
           <Route path="recordings/:courseId" element={<StudentRecordings />} />
         </Route>
+
+
+        {/* /* {instructor} */ }
+         <Route path="/instructor/dashboard" element={<InstructorDashboard />} />
+          <Route
+          path="/instructor/courses/:courseId/recordings"
+          element={<InstructorManageRecordings />}
+        />
+        <Route path="/instructor/my-students" element={<InstructorMyStudents />} />
 
         {/* Auth pages rendered standalone, without the public Navbar/Footer */}
         <Route path="/login" element={<Login />} />
