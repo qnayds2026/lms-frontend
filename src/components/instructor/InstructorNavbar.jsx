@@ -20,10 +20,12 @@ const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Space
 const display = { fontFamily: "'Space Grotesk', sans-serif" };
 
 const NAV_LINKS = [
-  { label: "Dashboard", href: "/student/dashboard" },
-  { label: "My Courses", href: "/student/my-courses" },
-  { label: "Live Classes", href: "/student/live-classes" },
-  { label: "Notifications", href: "/student/notifications" },
+  { label: "Dashboard", href: "/instructor/dashboard" },
+  { label: "Courses", href: "/instructor/courses" },
+  { label: " Modules", href: "/instructor/modules" },
+  { label: " Recordings", href: "/instructor/recordings" },
+  { label: " Live Classes", href: "/instructor/live-classes" },
+  { label: "my-students", href: "/instructor/my-students" },
 ];
 
 export default function InstructorNavbar({ unreadCount = 0, onLogout }) {
