@@ -20,15 +20,13 @@ const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Space
 const display = { fontFamily: "'Space Grotesk', sans-serif" };
 
 const NAV_LINKS = [
-  { label: "Dashboard", href: "/instructor/dashboard" },
-  { label: "Courses", href: "/instructor/courses" },
-  { label: "Manage Modules", href: "/student/manage-modules" },
-  { label: "Manage Recordings", href: "/student/manage-recordings" },
-  { label: "Manage Live Classes", href: "/student/manage-live-classes" },
-  { label: "Manage Recordings", href: "/student/manage-recordings" },
+  { label: "Dashboard", href: "/student/dashboard" },
+  { label: "My Courses", href: "/student/my-courses" },
+  { label: "Live Classes", href: "/student/live-classes" },
+  { label: "Notifications", href: "/student/notifications" },
 ];
 
-export default function StudentNavbar({ unreadCount = 0, onLogout }) {
+export default function InstructorNavbar({ unreadCount = 0, onLogout }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [profileOpen, setProfileOpen] = useState(false);

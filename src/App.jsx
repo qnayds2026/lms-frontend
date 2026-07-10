@@ -13,6 +13,7 @@ import StudentMyCourses from "./pages/students/StudentMyCourses";
 import StudentLiveClasses from "./pages/students/Studentliveclass";
 import StudentRecordings from "./pages/students/StudentRecordings";
 import Notifications from "./pages/students/Notifications";
+import InstructorLayout from "./layoutes/instructorLayoutes/InstructorLayout";
 
 const App = () => {
   return (
@@ -32,6 +33,9 @@ const App = () => {
           <Route path="live-classes" element={<StudentLiveClasses />} />
           <Route path="recordings/:courseId" element={<StudentRecordings />} />
         </Route>
+
+        {/* Instructor */}
+        <Route path="/instructor" element={<InstructorLayout />}></Route>
 
         {/* Auth pages rendered standalone, without the public Navbar/Footer */}
         <Route path="/login" element={<Login />} />
