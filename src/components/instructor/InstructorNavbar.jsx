@@ -19,7 +19,7 @@ const display = { fontFamily: "'Space Grotesk', sans-serif" };
 
 const NAV_LINKS = [
   { label: "Dashboard", href: "/instructor/dashboard" },
-  { label: "Courses", href: "/instructor/courses" },
+  { label: "Courses", href: "/instructor/my-courses" },
   { label: " Modules", href: "/instructor/modules" },
   { label: " Recordings", href: "/instructor/recordings" },
   { label: " Live Classes", href: "/instructor/live-classes" },

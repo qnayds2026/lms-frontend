@@ -47,7 +47,7 @@ const NAV_CONFIG = {
         href: "/instructor/dashboard",
         icon: LayoutDashboard,
       },
-      { label: "My Courses", href: "/instructor/courses", icon: BookOpen },
+      { label: "My Courses", href: "/instructor/my-courses", icon: BookOpen },
       { label: "Students", href: "/instructor/my-students", icon: Users },
       { label: "Live Classes", href: "/instructor/live-classes", icon: Video },
       { label: "Recordings", href: "/instructor/recordings", icon: Videotape },
