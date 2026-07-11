@@ -21,6 +21,8 @@ import MyCourses from "./pages/instructors/MyCourses";
 import InstructorRecordingsList from "./pages/instructors/instructorRecordingList";
 import InstructorLiveClassesList from "./pages/instructors/instructorLiveclasslist";
 import InstructorManageLiveClasses from "./pages/instructors/instructorManageLiveclass";
+import InstructorModulesList from "./pages/instructors/InstructorModulesList";
+import InstructorManageModules from "./pages/instructors/InstructorManageModules";
 
 const App = () => {
   return (
@@ -61,6 +63,14 @@ const App = () => {
           <Route
             path="/instructor/live-classes"
             element={<InstructorLiveClassesList />}
+          />
+          <Route
+            path="/instructor/modules"
+            element={<InstructorModulesList />}
+          />
+          <Route
+            path="/instructor/courses/:courseId/modules"
+            element={<InstructorManageModules />}
           />
         </Route>
 
