@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Videotape,
+  Book,
   X,
   LogOut,
 } from "lucide-react";
@@ -48,6 +49,7 @@ const NAV_CONFIG = {
         icon: LayoutDashboard,
       },
       { label: "My Courses", href: "/instructor/my-courses", icon: BookOpen },
+      { label: "Modules", href: "/instructor/modules", icon: Book },
       { label: "Students", href: "/instructor/my-students", icon: Users },
       { label: "Live Classes", href: "/instructor/live-classes", icon: Video },
       { label: "Recordings", href: "/instructor/recordings", icon: Videotape },

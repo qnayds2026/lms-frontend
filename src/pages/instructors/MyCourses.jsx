@@ -563,64 +563,96 @@ const MyCourses = () => {
           {courses.map((course) => (
             <div
               key={course.id}
-              className="bg-white border border-slate-200 rounded-2xl overflow-hidden hover:border-sky-300 hover:shadow-lg hover:shadow-sky-100 transition flex flex-col"
+              className="group bg-white border border-slate-200 rounded-2xl overflow-hidden hover:border-sky-200 hover:shadow-lg hover:shadow-slate-200/60 transition-all duration-300 flex flex-col"
             >
-              <div className="h-40 bg-slate-100 flex items-center justify-center">
+              {/* Image */}
+              <div className="relative h-40 bg-slate-50 border-b border-slate-100 overflow-hidden">
                 {course.thumbnail ? (
                   <img
                     src={course.thumbnail}
                     alt={course.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                   />
                 ) : (
-                  <Layers className="w-7 h-7 text-slate-300" />
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Layers className="w-7 h-7 text-slate-300" />
+                  </div>
                 )}
               </div>
 
+              {/* Body */}
               <div className="p-5 flex flex-col flex-1">
-                <h3 className="font-semibold text-lg text-slate-900 line-clamp-2">
+                {(course.category || course.duration) && (
+                  <div
+                    className="flex items-center gap-2 text-[11px] text-slate-400 uppercase tracking-wide"
+                    style={mono}
+                  >
+                    {course.category && <span>{course.category}</span>}
+                    {course.category && course.duration && <span>·</span>}
+                    {course.duration && (
+                      <span className="inline-flex items-center gap-1 normal-case tracking-normal">
+                        <Clock className="w-3 h-3" />
+                        {course.duration}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                <h3 className="mt-1.5 font-semibold text-slate-900 leading-snug line-clamp-2">
                   {course.title}
                 </h3>
 
-                <p className="text-slate-500 mt-2 font-medium">
-                  {course.price ? `₹${course.price}` : "Free"}
-                </p>
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <span className="text-lg font-bold text-slate-900">
+                    {course.price ? `₹${course.price}` : "Free"}
+                  </span>
 
-                <div className="mt-3">
-                  {course.isPublished ? (
-                    <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-medium">
-                      Published
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-medium">
-                      Draft
-                    </span>
-                  )}
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium ${
+                      course.isPublished
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "bg-amber-50 text-amber-700"
+                    }`}
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        course.isPublished ? "bg-emerald-500" : "bg-amber-500"
+                      }`}
+                    />
+                    {course.isPublished ? "Published" : "Draft"}
+                  </span>
                 </div>
 
-                <div className="mt-auto pt-5 space-y-2">
+                {typeof course.enrolledCount === "number" && (
+                  <p className="mt-1.5 text-xs text-slate-400">
+                    {course.enrolledCount} students enrolled
+                  </p>
+                )}
+
+                {/* Action bar */}
+                <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
                   <button
                     onClick={() => setViewingCourseId(course.id)}
-                    className="w-full inline-flex items-center justify-center gap-2 border border-slate-200 text-slate-600 rounded-lg py-2 text-sm font-medium hover:bg-slate-50 hover:border-sky-300 hover:text-sky-700 transition"
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-sky-600 hover:text-sky-700 transition"
                   >
                     <Eye className="w-4 h-4" />
-                    View
+                    View details
                   </button>
 
-                  <div className="flex gap-2">
+                  <div className="flex items-center gap-1">
                     <button
                       onClick={() => openEditModal(course)}
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 border border-slate-200 rounded-lg py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition"
+                      title="Edit course"
+                      className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition"
                     >
-                      <Pencil className="w-3.5 h-3.5" />
-                      Edit
+                      <Pencil className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setDeleteTarget(course)}
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 border border-red-200 text-red-500 rounded-lg py-2 text-sm font-medium hover:bg-red-50 transition"
+                      title="Delete course"
+                      className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      Delete
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
