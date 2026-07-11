@@ -17,6 +17,9 @@ import InstructorLayout from "./layoutes/instructorLayoutes/InstructorLayout";
 import InstructorDashboard from "./pages/instructors/InstructorDashboard";
 import InstructorManageRecordings from "./pages/instructors/InstructorManageRecordings";
 import InstructorMyStudents from "./pages/instructors/InstructorMystudent";
+import InstructorRecordingsList from "./pages/instructors/instructorRecordingList";
+import InstructorLiveClassesList from "./pages/instructors/instructorLiveclasslist";
+import InstructorManageLiveClasses from "./pages/instructors/instructorManageLiveclass";
 
 const App = () => {
   return (
@@ -45,6 +48,12 @@ const App = () => {
             element={<InstructorManageRecordings />}
           />
           <Route path="my-students" element={<InstructorMyStudents />} />
+          <Route path="/instructor/recordings" element={<InstructorRecordingsList />} />
+          <Route
+            path="courses/:courseId/live-classes"
+            element={<InstructorManageLiveClasses />}
+          />
+           <Route path="/instructor/live-classes" element={<InstructorLiveClassesList />} />
         </Route>
 
         {/* Auth pages rendered standalone, without the public Navbar/Footer */}
