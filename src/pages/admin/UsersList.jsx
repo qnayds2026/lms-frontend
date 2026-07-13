@@ -473,6 +473,24 @@ const UsersList = () => {
     }
   };
 
+  const toggleUserStatus = async (id) => {
+  try {
+    const res = await api.patch(`/users/${id}/status`);
+
+    const updatedUser = res.data;
+
+    setUsers((prev) =>
+      prev.map((u) =>
+        u.id === id
+          ? { ...u, isActive: updatedUser.isActive }
+          : u
+      )
+    );
+  } catch (error) {
+    console.error(error);
+  }
+};
+
   const totalUsers = users.length;
   const students = users.filter((u) => u.role === "STUDENT").length;
   const instructors = users.filter((u) => u.role === "INSTRUCTOR").length;
@@ -666,13 +684,17 @@ const UsersList = () => {
                           >
                             <Pencil className="w-4 h-4" />
                           </button>
-                          <button
-                            onClick={() => setDeleteTarget(user)}
-                            title="Delete"
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                        <button
+  onClick={() => toggleUserStatus(user.id)}
+  title={user.isActive ? "Deactivate" : "Activate"}
+  className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${
+    user.isActive
+      ? "text-slate-400 hover:text-red-500 hover:bg-red-50"
+      : "text-slate-400 hover:text-green-500 hover:bg-green-50"
+  }`}
+>
+  <Shield className="w-4 h-4" />
+</button>
                         </div>
                       </td>
                     </tr>
