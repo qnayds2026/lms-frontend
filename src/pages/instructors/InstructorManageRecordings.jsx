@@ -8,6 +8,8 @@ import {
   Terminal,
   PlaySquare,
   X,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import api from "../../api/axios";
 
@@ -16,12 +18,9 @@ const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Space
 const display = { fontFamily: "'Space Grotesk', sans-serif" };
 const mono = { fontFamily: "'JetBrains Mono', monospace" };
 
-// NOTE: assumes GET /modules/course/:courseId exists, following the same
-// "list by parent" pattern as your other routes. Confirm against your
-// actual module.routes.js and adjust if the path differs.
-
-function AddRecordingModal({ moduleId, onClose, onCreated }) {
-  const [form, setForm] = useState({ title: "", description: "", youtubeUrl: "" });
+function AddModuleModal({ courseId, onClose, onCreated }) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -30,11 +29,11 @@ function AddRecordingModal({ moduleId, onClose, onCreated }) {
     setError("");
     setSaving(true);
     try {
-      const res = await api.post("/recordings", { ...form, moduleId });
+      const res = await api.post("/modules", { title, description, courseId });
       onCreated(res.data);
       onClose();
     } catch (err) {
-      setError(err?.response?.data?.error || "Failed to add recording.");
+      setError(err?.response?.data?.message || "Failed to create module.");
     } finally {
       setSaving(false);
     }
@@ -50,7 +49,88 @@ function AddRecordingModal({ moduleId, onClose, onCreated }) {
           <X className="w-5 h-5" />
         </button>
         <h3 className="text-lg font-semibold text-slate-900" style={display}>
-          Add Recording
+          Add Module
+        </h3>
+        {error && (
+          <div className="mt-3 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-600">
+            {error}
+          </div>
+        )}
+        <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+          <input
+            required
+            placeholder="Module title (e.g. Week 1: Fundamentals)"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+          />
+          <textarea
+            placeholder="Description (optional)"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+            rows={3}
+          />
+          <button
+            type="submit"
+            disabled={saving}
+            className="w-full bg-sky-600 hover:bg-sky-700 disabled:opacity-60 text-white py-2.5 rounded-lg font-medium text-sm transition"
+          >
+            {saving ? "Saving..." : "Add Module"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// NOTE: assumes GET /modules/course/:courseId exists, following the same
+// "list by parent" pattern as your other routes. Confirm against your
+// actual module.routes.js and adjust if the path differs.
+
+function RecordingFormModal({ moduleId, editingRecording, onClose, onSaved }) {
+  const isEditing = Boolean(editingRecording);
+  const [form, setForm] = useState({
+    title: editingRecording?.title || "",
+    description: editingRecording?.description || "",
+    youtubeUrl: "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSaving(true);
+    try {
+      if (isEditing) {
+        const payload = { title: form.title, description: form.description };
+        if (form.youtubeUrl.trim()) payload.youtubeUrl = form.youtubeUrl;
+        const res = await api.put(`/recordings/${editingRecording.id}`, payload);
+        onSaved(res.data);
+      } else {
+        const res = await api.post("/recordings", { ...form, moduleId });
+        onSaved(res.data);
+      }
+      onClose();
+    } catch (err) {
+      setError(err?.response?.data?.error || "Failed to save recording.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/40 flex items-center justify-center z-50 px-4">
+      <div className="bg-white rounded-2xl w-full max-w-md p-6 relative">
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 text-slate-400 hover:text-slate-600"
+        >
+          <X className="w-5 h-5" />
+        </button>
+        <h3 className="text-lg font-semibold text-slate-900" style={display}>
+          {isEditing ? "Edit Recording" : "Add Recording"}
         </h3>
         {error && (
           <div className="mt-3 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-600">
@@ -73,8 +153,8 @@ function AddRecordingModal({ moduleId, onClose, onCreated }) {
             rows={3}
           />
           <input
-            required
-            placeholder="YouTube URL"
+            required={!isEditing}
+            placeholder={isEditing ? "New YouTube URL (leave blank to keep current)" : "YouTube URL"}
             value={form.youtubeUrl}
             onChange={(e) => setForm({ ...form, youtubeUrl: e.target.value })}
             className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
@@ -84,7 +164,7 @@ function AddRecordingModal({ moduleId, onClose, onCreated }) {
             disabled={saving}
             className="w-full bg-sky-600 hover:bg-sky-700 disabled:opacity-60 text-white py-2.5 rounded-lg font-medium text-sm transition"
           >
-            {saving ? "Saving..." : "Add Recording"}
+            {saving ? "Saving..." : isEditing ? "Save Changes" : "Add Recording"}
           </button>
         </form>
       </div>
@@ -92,6 +172,40 @@ function AddRecordingModal({ moduleId, onClose, onCreated }) {
   );
 }
 
+function PreviewModal({ recording, onClose }) {
+  return (
+    <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 px-4">
+      <div className="bg-white rounded-2xl w-full max-w-2xl p-4 relative">
+        <button
+          onClick={onClose}
+          className="absolute right-3 top-3 z-10 text-white bg-slate-900/50 rounded-full p-1.5 hover:bg-slate-900/70"
+        >
+          <X className="w-4 h-4" />
+        </button>
+        <div className="aspect-video w-full overflow-hidden rounded-xl bg-slate-900">
+          {recording.videoId ? (
+            <iframe
+              className="h-full w-full"
+              src={`https://www.youtube.com/embed/${recording.videoId}`}
+              title={recording.title}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-white/40 text-sm">
+              No video available to preview.
+            </div>
+          )}
+        </div>
+        <h3 className="mt-3 text-sm font-semibold text-slate-900">{recording.title}</h3>
+        {recording.description && (
+          <p className="mt-1 text-sm text-slate-500">{recording.description}</p>
+        )}
+      </div>
+    </div>
+  );
+}
 const InstructorManageRecordings = () => {
   const { courseId } = useParams();
   const [course, setCourse] = useState(null);
@@ -99,6 +213,8 @@ const InstructorManageRecordings = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [modalModuleId, setModalModuleId] = useState(null);
+  const [previewRecording, setPreviewRecording] = useState(null);
+  const [editingRecording, setEditingRecording] = useState(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -160,6 +276,22 @@ const InstructorManageRecordings = () => {
     }
   };
 
+  const handleDelete = async (recordingId, moduleId) => {
+    if (!confirm("Delete this recording? This cannot be undone.")) return;
+    try {
+      await api.delete(`/recordings/${recordingId}`);
+      setModules((prev) =>
+        prev.map((m) =>
+          m.id === moduleId
+            ? { ...m, recordings: m.recordings.filter((r) => r.id !== recordingId) }
+            : m
+        )
+      );
+    } catch (err) {
+      alert(err?.response?.data?.error || "Failed to delete recording.");
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-6 md:p-10 bg-slate-50 min-h-screen animate-pulse">
@@ -217,15 +349,24 @@ const InstructorManageRecordings = () => {
             <ul className="divide-y divide-slate-100">
               {module.recordings.map((rec) => (
                 <li key={rec.id} className="flex items-center gap-3 px-5 py-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-50">
+                  <button
+                    onClick={() => setPreviewRecording(rec)}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-50 hover:bg-sky-100 transition-colors"
+                    aria-label="Preview video"
+                  >
                     <PlaySquare className="h-4 w-4 text-sky-600" />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900 truncate">{rec.title}</p>
+                  </button>
+                  <button
+                    onClick={() => setPreviewRecording(rec)}
+                    className="flex-1 min-w-0 text-left"
+                  >
+                    <p className="text-sm font-medium text-slate-900 truncate hover:text-sky-600 transition-colors">
+                      {rec.title}
+                    </p>
                     {rec.duration && (
                       <p className="text-xs text-slate-400">{rec.duration}</p>
                     )}
-                  </div>
+                  </button>
                   <button
                     onClick={() => togglePublish(rec, module.id)}
                     className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
@@ -240,6 +381,20 @@ const InstructorManageRecordings = () => {
                       <EyeOff className="h-3.5 w-3.5" />
                     )}
                     {rec.isPublished ? "Published" : "Draft"}
+                  </button>
+                  <button
+                    onClick={() => setEditingRecording(rec)}
+                    className="shrink-0 flex items-center justify-center h-8 w-8 rounded-lg text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-colors"
+                    aria-label="Edit"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(rec.id, module.id)}
+                    className="shrink-0 flex items-center justify-center h-8 w-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                    aria-label="Delete"
+                  >
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </li>
               ))}
@@ -259,19 +414,39 @@ const InstructorManageRecordings = () => {
         )}
       </div>
 
-      {modalModuleId && (
-        <AddRecordingModal
+      {(modalModuleId || editingRecording) && (
+        <RecordingFormModal
           moduleId={modalModuleId}
-          onClose={() => setModalModuleId(null)}
-          onCreated={(newRec) =>
+          editingRecording={editingRecording}
+          onClose={() => {
+            setModalModuleId(null);
+            setEditingRecording(null);
+          }}
+          onSaved={(savedRec) => {
             setModules((prev) =>
-              prev.map((m) =>
-                m.id === modalModuleId
-                  ? { ...m, recordings: [...m.recordings, newRec] }
-                  : m
-              )
-            )
-          }
+              prev.map((m) => {
+                if (editingRecording) {
+                  // Editing: update the recording in whichever module it belongs to
+                  return {
+                    ...m,
+                    recordings: m.recordings.map((r) =>
+                      r.id === savedRec.id ? { ...r, ...savedRec } : r
+                    ),
+                  };
+                }
+                // Creating: append to the module the "Add Recording" button was clicked from
+                return m.id === modalModuleId
+                  ? { ...m, recordings: [...m.recordings, savedRec] }
+                  : m;
+              })
+            );
+          }}
+        />
+      )}
+      {previewRecording && (
+        <PreviewModal
+          recording={previewRecording}
+          onClose={() => setPreviewRecording(null)}
         />
       )}
     </div>
