@@ -33,7 +33,6 @@ const NAV_CONFIG = {
       { label: "Courses", href: "/admin/courses", icon: BookOpen },
       { label: "Instructors", href: "/admin/instructors", icon: GraduationCap },
       { label: "Payments", href: "/admin/payments", icon: CreditCard },
-      { label: "Reports", href: "/admin/reports", icon: BarChart3 },
     ],
     bottomLinks: [
       { label: "Settings", href: "/admin/settings", icon: Settings },
