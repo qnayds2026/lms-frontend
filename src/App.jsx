@@ -25,6 +25,8 @@ import InstructorModulesList from "./pages/instructors/InstructorModulesList";
 import InstructorManageModules from "./pages/instructors/InstructorManageModules";
 import AdminLayout from "./layoutes/adminLayoutes/AdminLayout";
 import AdminDashboard from "./pages/admin/Admindashboard";
+import AdminCourses from "./pages/admin/Admincoures";
+import AdminInstructors from "./pages/admin/Admininstructor";
 
 const App = () => {
   return (
@@ -78,6 +80,8 @@ const App = () => {
 
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/courses" element={<AdminCourses />} />
+          <Route path="/admin/instructors" element={<AdminInstructors />} />
         </Route>
 
         {/* Auth pages rendered standalone, without the public Navbar/Footer */}
