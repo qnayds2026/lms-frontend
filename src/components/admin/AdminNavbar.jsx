@@ -97,7 +97,7 @@ export default function AdminNavbar({
               className="text-lg font-semibold text-slate-900"
               style={display}
             >
-              Instructor Dashboard
+              Admin Dashboard
             </h1>
           </div>
 
