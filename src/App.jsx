@@ -1,10 +1,10 @@
+
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./layoutes/Layout";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Courses from "./pages/Courses";
-
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import StudentDashboard from "./pages/students/StudentDashboard";
@@ -25,9 +25,9 @@ import InstructorModulesList from "./pages/instructors/InstructorModulesList";
 import InstructorManageModules from "./pages/instructors/InstructorManageModules";
 import AdminLayout from "./layoutes/adminLayoutes/AdminLayout";
 import AdminDashboard from "./pages/admin/Admindashboard";
-import AdminCourses from "./pages/admin/Admincoures";
-import AdminInstructors from "./pages/admin/Admininstructor";
-
+import AdminCourses from "./pages/admin/AdminCourses";
+import AdminInstructors from "./pages/admin/AdminInstructors";
+import UsersList from "./pages/admin/UsersList";
 const App = () => {
   return (
     <Router>
@@ -37,7 +37,6 @@ const App = () => {
           <Route path="about" element={<About />} />
           <Route path="courses" element={<Courses />} />
         </Route>
-
         {/* Student */}
         <Route path="/student" element={<StudentLayout />}>
           <Route path="dashboard" element={<StudentDashboard />} />
@@ -46,7 +45,6 @@ const App = () => {
           <Route path="live-classes" element={<StudentLiveClasses />} />
           <Route path="recordings/:courseId" element={<StudentRecordings />} />
         </Route>
-
         {/* Instructor */}
         <Route path="/instructor" element={<InstructorLayout />}>
           <Route path="dashboard" element={<InstructorDashboard />} />
@@ -77,13 +75,12 @@ const App = () => {
             element={<InstructorManageModules />}
           />
         </Route>
-
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/courses" element={<AdminCourses />} />
           <Route path="/admin/instructors" element={<AdminInstructors />} />
+          <Route path="/admin/users" element={<UsersList />} />
         </Route>
-
         {/* Auth pages rendered standalone, without the public Navbar/Footer */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -91,5 +88,4 @@ const App = () => {
     </Router>
   );
 };
-
 export default App;

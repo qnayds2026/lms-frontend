@@ -310,6 +310,7 @@ export default function AdminNavbar({
                 Logout
               </button>
             </div>
+            
           </div>
         </div>
       )}
