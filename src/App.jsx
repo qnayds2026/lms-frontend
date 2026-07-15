@@ -1,4 +1,3 @@
-
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./layoutes/Layout";
@@ -29,6 +28,7 @@ import AdminCourses from "./pages/admin/AdminCourses";
 import AdminInstructors from "./pages/admin/AdminInstructors";
 import AdminInstructorDetail from "./pages/admin/AdminInstructorDetails";
 import UsersList from "./pages/admin/UsersList";
+import AdminPaymentList from "./pages/admin/AdminPaymentList";
 const App = () => {
   return (
     <Router>
@@ -76,13 +76,14 @@ const App = () => {
             element={<InstructorManageModules />}
           />
         </Route>
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/courses" element={<AdminCourses />} />
-          <Route path="/admin/instructors" element={<AdminInstructors />} />
-          <Route path="/admin/users" element={<UsersList />} />
-          <Route path="instructors/:id" element={<AdminInstructorDetail />} />
-        </Route>
+       <Route path="/admin" element={<AdminLayout />}>
+  <Route path="/admin/dashboard" element={<AdminDashboard />} />
+  <Route path="/admin/courses" element={<AdminCourses />} />
+  <Route path="/admin/instructors" element={<AdminInstructors />} />
+  <Route path="/admin/users" element={<UsersList />} />
+  <Route path="instructors/:id" element={<AdminInstructorDetail />} />
+  <Route path="/admin/payments" element={<AdminPaymentList />} />
+</Route>
         {/* Auth pages rendered standalone, without the public Navbar/Footer */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
