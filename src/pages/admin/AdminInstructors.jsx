@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Search, UserCog, Terminal } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Search, UserCog, Terminal, ChevronRight } from "lucide-react";
 import api from "../../api/axios";
 
 const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');`;
@@ -84,20 +85,22 @@ export default function AdminInstructors() {
 
         {!loading &&
           filtered.map((inst) => (
-            <div
+            <Link
               key={inst.id}
-              className="bg-white rounded-2xl border border-slate-200 p-6 hover:border-sky-300 hover:shadow-lg hover:shadow-sky-100 transition"
+              to={`/admin/instructors/${inst.id}`}
+              className="group bg-white rounded-2xl border border-slate-200 p-6 hover:border-sky-300 hover:shadow-lg hover:shadow-sky-100 transition"
             >
               <div className="flex items-center gap-3">
                 <div className="h-11 w-11 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-semibold shrink-0" style={display}>
                   {inst.name?.charAt(0)?.toUpperCase() || <UserCog size={18} />}
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-slate-900 truncate">
                     {inst.name}
                   </p>
                   <p className="text-xs text-slate-400 truncate">{inst.email}</p>
                 </div>
+                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-sky-500 transition-colors shrink-0" />
               </div>
 
               <div className="mt-5 grid grid-cols-3 gap-2 pt-4 border-t border-slate-100">
@@ -126,7 +129,7 @@ export default function AdminInstructors() {
                   </p>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
 
         {!loading && filtered.length === 0 && (

@@ -27,6 +27,7 @@ import AdminLayout from "./layoutes/adminLayoutes/AdminLayout";
 import AdminDashboard from "./pages/admin/Admindashboard";
 import AdminCourses from "./pages/admin/AdminCourses";
 import AdminInstructors from "./pages/admin/AdminInstructors";
+import AdminInstructorDetail from "./pages/admin/AdminInstructorDetails";
 import UsersList from "./pages/admin/UsersList";
 const App = () => {
   return (
@@ -80,6 +81,7 @@ const App = () => {
           <Route path="/admin/courses" element={<AdminCourses />} />
           <Route path="/admin/instructors" element={<AdminInstructors />} />
           <Route path="/admin/users" element={<UsersList />} />
+          <Route path="instructors/:id" element={<AdminInstructorDetail />} />
         </Route>
         {/* Auth pages rendered standalone, without the public Navbar/Footer */}
         <Route path="/login" element={<Login />} />
