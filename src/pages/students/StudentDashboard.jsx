@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
+
 import {
   BookOpen,
   BarChart2,
@@ -18,7 +19,9 @@ import {
   Star,
   Heart,
   Check,
+  X,
 } from "lucide-react";
+import PaymentModal from "../../components/student/PaymentModal";
 
 const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');`;
 
@@ -105,11 +108,10 @@ function DashboardSkeleton() {
     </div>
   );
 }
-function CourseCard({ course }) {
+function CourseCard({ course, onEnroll }) {
   const [wishlisted, setWishlisted] = useState(false);
   const priceLabel =
     course.price && course.price !== 0 ? `₹${course.price}` : "Free";
-
   return (
     <div className="group relative bg-white rounded-2xl border border-slate-200 overflow-hidden hover:border-sky-300 hover:shadow-xl hover:shadow-sky-100 hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
       {/* Thumbnail */}
@@ -228,21 +230,42 @@ function CourseCard({ course }) {
               {priceLabel}
             </span>
           </div>
+          {course.enrollmentStatus === "PENDING" ? (
+            <div className="flex flex-col items-end">
+              <span className="bg-amber-100 text-amber-700 px-4 py-2 rounded-lg text-sm font-medium">
+                ⏳ Waiting for Approval
+              </span>
 
-          <button className="inline-flex items-center justify-center gap-1.5 bg-sky-600 hover:bg-sky-700 text-white text-xs sm:text-sm font-medium px-4 py-2.5 rounded-lg transition shrink-0">
-            {typeof course.progress === "number" ? "Continue" : "Enroll Now"}
-          </button>
+              <p className="text-[11px] text-slate-400 mt-1">
+                You'll be notified once approved.
+              </p>
+            </div>
+          ) : course.enrollmentStatus === "ACTIVE" ? (
+            <button className="bg-green-100 text-green-700 px-4 py-2 rounded-lg text-sm font-medium">
+              ✓ Continue Learning
+            </button>
+          ) : (
+            <button
+              onClick={() => onEnroll(course)}
+              className="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+            >
+              Enroll Now
+            </button>
+          )}
         </div>
       </div>
     </div>
   );
 }
+
 const StudentDashboard = () => {
   const navigate = useNavigate();
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [courses, setCourses] = useState([]);
   const [coursesLoading, setCoursesLoading] = useState(true);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [paymentOpen, setPaymentOpen] = useState(false);
 
   const fetchDashboard = async () => {
     try {
@@ -257,7 +280,7 @@ const StudentDashboard = () => {
 
   const fetchCourses = async () => {
     try {
-      const res = await api.get("/courses");
+      const res = await api.get("/courses/student");
       setCourses(res.data || res.data.courses || []);
     } catch (error) {
       console.error(error);
@@ -270,6 +293,77 @@ const StudentDashboard = () => {
     fetchDashboard();
     fetchCourses();
   }, []);
+
+  const handleManualPayment = async (course) => {
+    try {
+      await api.post("/payments/manual", {
+        courseId: course.id,
+        amount: Number(course.price),
+      });
+
+      alert(
+        "Enrollment request submitted successfully. Waiting for admin approval.",
+      );
+
+      setPaymentOpen(false);
+      await fetchCourses();
+    } catch (error) {
+      console.error(error);
+
+      alert(error?.response?.data?.message || "Failed to submit payment.");
+    }
+  };
+
+  const handleOnlinePayment = async (course) => {
+    try {
+      const res = await api.post("/payments/create-order", {
+        courseId: course.id,
+      });
+      console.log(res.data);
+
+      const { order } = res.data.data;
+
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+
+        amount: order.amount,
+
+        currency: order.currency,
+
+        name: "QNAYDS LMS",
+
+        description: course.title,
+
+        order_id: order.id,
+
+        handler: function () {
+          alert(
+            "Payment successful. Your course access will be activated shortly.",
+          );
+
+          fetchCourses();
+        },
+
+        theme: {
+          color: "#0284c7",
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+
+      razorpay.open();
+    } catch (error) {
+      console.error(error);
+
+      alert(error?.response?.data?.message || "Failed to create payment order");
+    }
+  };
+
+  const handleEnrollClick = (course) => {
+    setSelectedCourse(course);
+    setPaymentOpen(true);
+  };
+  CourseCard;
 
   if (loading) {
     return <DashboardSkeleton />;
@@ -388,7 +482,11 @@ const StudentDashboard = () => {
         ) : courses.length > 0 ? (
           <div className="grid md:grid-cols-3 gap-5 mt-5">
             {courses.slice(0, 6).map((course) => (
-              <CourseCard key={course._id || course.id} course={course} />
+              <CourseCard
+                key={course._id || course.id}
+                course={course}
+                onEnroll={handleEnrollClick}
+              />
             ))}
           </div>
         ) : (
@@ -397,6 +495,13 @@ const StudentDashboard = () => {
           </div>
         )}
       </div>
+      <PaymentModal
+        open={paymentOpen}
+        course={selectedCourse}
+        onClose={() => setPaymentOpen(false)}
+        onManualPayment={handleManualPayment}
+        onOnlinePayment={handleOnlinePayment}
+      />
     </div>
   );
 };

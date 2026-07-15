@@ -1,4 +1,3 @@
-
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./layoutes/Layout";
@@ -28,6 +27,7 @@ import AdminDashboard from "./pages/admin/Admindashboard";
 import AdminCourses from "./pages/admin/AdminCourses";
 import AdminInstructors from "./pages/admin/AdminInstructors";
 import UsersList from "./pages/admin/UsersList";
+import AdminPaymentList from "./pages/admin/AdminPaymentList";
 const App = () => {
   return (
     <Router>
@@ -80,6 +80,7 @@ const App = () => {
           <Route path="/admin/courses" element={<AdminCourses />} />
           <Route path="/admin/instructors" element={<AdminInstructors />} />
           <Route path="/admin/users" element={<UsersList />} />
+          <Route path="/admin/payments" element={<AdminPaymentList />} />
         </Route>
         {/* Auth pages rendered standalone, without the public Navbar/Footer */}
         <Route path="/login" element={<Login />} />
