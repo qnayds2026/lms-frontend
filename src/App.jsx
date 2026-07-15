@@ -27,8 +27,11 @@ import AdminDashboard from "./pages/admin/Admindashboard";
 import AdminCourses from "./pages/admin/AdminCourses";
 import AdminInstructors from "./pages/admin/AdminInstructors";
 import AdminInstructorDetail from "./pages/admin/AdminInstructorDetails";
+import AdminManageRecordings from "./pages/admin/AdminManageRecording";
+import AdminManageLiveClasses from "./pages/admin/AdminManageLiveclass";
 import UsersList from "./pages/admin/UsersList";
 import AdminPaymentList from "./pages/admin/AdminPaymentList";
+import { Import } from "lucide-react";
 const App = () => {
   return (
     <Router>
@@ -83,6 +86,9 @@ const App = () => {
   <Route path="/admin/users" element={<UsersList />} />
   <Route path="instructors/:id" element={<AdminInstructorDetail />} />
   <Route path="/admin/payments" element={<AdminPaymentList />} />
+  <Route path="/admin/courses/:courseId/recordings" element={<AdminManageRecordings />} />
+  <Route path="/admin/courses/:courseId/live-classes" element={<AdminManageLiveClasses />} />
+
 </Route>
         {/* Auth pages rendered standalone, without the public Navbar/Footer */}
         <Route path="/login" element={<Login />} />
