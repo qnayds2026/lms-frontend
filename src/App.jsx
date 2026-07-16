@@ -31,7 +31,8 @@ import AdminManageRecordings from "./pages/admin/AdminManageRecording";
 import AdminManageLiveClasses from "./pages/admin/AdminManageLiveclass";
 import UsersList from "./pages/admin/UsersList";
 import AdminPaymentList from "./pages/admin/AdminPaymentList";
-import { Import } from "lucide-react";
+import InstructorManageAttachments from "./pages/instructors/InstructorManageAttachments";
+
 const App = () => {
   return (
     <Router>
@@ -78,18 +79,27 @@ const App = () => {
             path="/instructor/courses/:courseId/modules"
             element={<InstructorManageModules />}
           />
+          <Route
+            path="/instructor/modules/:moduleId/attachments"
+            element={<InstructorManageAttachments />}
+          />
         </Route>
-       <Route path="/admin" element={<AdminLayout />}>
-  <Route path="/admin/dashboard" element={<AdminDashboard />} />
-  <Route path="/admin/courses" element={<AdminCourses />} />
-  <Route path="/admin/instructors" element={<AdminInstructors />} />
-  <Route path="/admin/users" element={<UsersList />} />
-  <Route path="instructors/:id" element={<AdminInstructorDetail />} />
-  <Route path="/admin/payments" element={<AdminPaymentList />} />
-  <Route path="/admin/courses/:courseId/recordings" element={<AdminManageRecordings />} />
-  <Route path="/admin/courses/:courseId/live-classes" element={<AdminManageLiveClasses />} />
-
-</Route>
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/courses" element={<AdminCourses />} />
+          <Route path="/admin/instructors" element={<AdminInstructors />} />
+          <Route path="/admin/users" element={<UsersList />} />
+          <Route path="instructors/:id" element={<AdminInstructorDetail />} />
+          <Route path="/admin/payments" element={<AdminPaymentList />} />
+          <Route
+            path="/admin/courses/:courseId/recordings"
+            element={<AdminManageRecordings />}
+          />
+          <Route
+            path="/admin/courses/:courseId/live-classes"
+            element={<AdminManageLiveClasses />}
+          />
+        </Route>
         {/* Auth pages rendered standalone, without the public Navbar/Footer */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
