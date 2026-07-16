@@ -403,8 +403,14 @@ const InstructorManageModules = () => {
                   </p>
                 )}
               </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Link
+                  to={`/instructor/modules/${mod.id}/attachments`}
+                  className="px-3 py-1.5 text-xs font-medium bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition"
+                >
+                  📎 Attachments
+                </Link>
 
-              <div className="flex items-center gap-1 shrink-0">
                 <button
                   onClick={() => openEditModal(mod)}
                   title="Edit module"
@@ -412,6 +418,7 @@ const InstructorManageModules = () => {
                 >
                   <Pencil className="w-4 h-4" />
                 </button>
+
                 <button
                   onClick={() => setDeleteTarget(mod)}
                   title="Delete module"
