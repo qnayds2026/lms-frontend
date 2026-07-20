@@ -93,7 +93,7 @@ function RecordingFormModal({ moduleId, editingRecording, onClose, onSaved }) {
   const [form, setForm] = useState({
     title: editingRecording?.title || "",
     description: editingRecording?.description || "",
-    youtubeUrl: "",
+    videoUrl: editingRecording?.videoUrl || "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -104,9 +104,16 @@ function RecordingFormModal({ moduleId, editingRecording, onClose, onSaved }) {
     setSaving(true);
     try {
       if (isEditing) {
-        const payload = { title: form.title, description: form.description };
-        if (form.youtubeUrl.trim()) payload.youtubeUrl = form.youtubeUrl;
-        const res = await api.put(`/recordings/${editingRecording.id}`, payload);
+        const payload = {
+          title: form.title,
+          description: form.description,
+        };
+
+        if (form.videoUrl.trim()) payload.videoUrl = form.videoUrl;
+        const res = await api.put(
+          `/recordings/${editingRecording.id}`,
+          payload,
+        );
         onSaved(res.data);
       } else {
         const res = await api.post("/recordings", { ...form, moduleId });
@@ -154,9 +161,18 @@ function RecordingFormModal({ moduleId, editingRecording, onClose, onSaved }) {
           />
           <input
             required={!isEditing}
-            placeholder={isEditing ? "New YouTube URL (leave blank to keep current)" : "YouTube URL"}
-            value={form.youtubeUrl}
-            onChange={(e) => setForm({ ...form, youtubeUrl: e.target.value })}
+            placeholder={
+              isEditing
+                ? "New Video URL (YouTube or Google Drive)"
+                : "Paste YouTube or Google Drive link"
+            }
+            value={form.videoUrl}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                videoUrl: e.target.value,
+              })
+            }
             className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
           />
           <button
@@ -164,14 +180,17 @@ function RecordingFormModal({ moduleId, editingRecording, onClose, onSaved }) {
             disabled={saving}
             className="w-full bg-sky-600 hover:bg-sky-700 disabled:opacity-60 text-white py-2.5 rounded-lg font-medium text-sm transition"
           >
-            {saving ? "Saving..." : isEditing ? "Save Changes" : "Add Recording"}
+            {saving
+              ? "Saving..."
+              : isEditing
+                ? "Save Changes"
+                : "Add Recording"}
           </button>
         </form>
       </div>
     </div>
   );
 }
-
 function PreviewModal({ recording, onClose }) {
   return (
     <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 px-4">
@@ -182,11 +201,12 @@ function PreviewModal({ recording, onClose }) {
         >
           <X className="w-4 h-4" />
         </button>
+
         <div className="aspect-video w-full overflow-hidden rounded-xl bg-slate-900">
-          {recording.videoId ? (
+          {recording.embedUrl ? (
             <iframe
               className="h-full w-full"
-              src={`https://www.youtube.com/embed/${recording.videoId}`}
+              src={recording.embedUrl}
               title={recording.title}
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -198,7 +218,11 @@ function PreviewModal({ recording, onClose }) {
             </div>
           )}
         </div>
-        <h3 className="mt-3 text-sm font-semibold text-slate-900">{recording.title}</h3>
+
+        <h3 className="mt-3 text-sm font-semibold text-slate-900">
+          {recording.title}
+        </h3>
+
         {recording.description && (
           <p className="mt-1 text-sm text-slate-500">{recording.description}</p>
         )}
@@ -230,8 +254,8 @@ const InstructorManageRecordings = () => {
           api
             .get(`/recordings/module/${m.id}`)
             .then((res) => res.data)
-            .catch(() => [])
-        )
+            .catch(() => []),
+        ),
       );
 
       setModules(
@@ -239,7 +263,7 @@ const InstructorManageRecordings = () => {
           id: m.id,
           title: m.title,
           recordings: recordingsByModule[i] || [],
-        }))
+        })),
       );
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to load course.");
@@ -265,11 +289,13 @@ const InstructorManageRecordings = () => {
             ? {
                 ...m,
                 recordings: m.recordings.map((r) =>
-                  r.id === recording.id ? { ...r, isPublished: !r.isPublished } : r
+                  r.id === recording.id
+                    ? { ...r, isPublished: !r.isPublished }
+                    : r,
                 ),
               }
-            : m
-        )
+            : m,
+        ),
       );
     } catch (err) {
       alert(err?.response?.data?.error || "Failed to update publish status.");
@@ -283,9 +309,12 @@ const InstructorManageRecordings = () => {
       setModules((prev) =>
         prev.map((m) =>
           m.id === moduleId
-            ? { ...m, recordings: m.recordings.filter((r) => r.id !== recordingId) }
-            : m
-        )
+            ? {
+                ...m,
+                recordings: m.recordings.filter((r) => r.id !== recordingId),
+              }
+            : m,
+        ),
       );
     } catch (err) {
       alert(err?.response?.data?.error || "Failed to delete recording.");
@@ -298,7 +327,10 @@ const InstructorManageRecordings = () => {
         <div className="h-8 w-64 bg-slate-200 rounded-lg" />
         <div className="mt-8 space-y-4">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="bg-white rounded-2xl border border-slate-200 h-24" />
+            <div
+              key={i}
+              className="bg-white rounded-2xl border border-slate-200 h-24"
+            />
           ))}
         </div>
       </div>
@@ -323,7 +355,10 @@ const InstructorManageRecordings = () => {
       >
         <Terminal className="w-3.5 h-3.5" /> manage_recordings
       </span>
-      <h1 className="mt-3 text-2xl font-semibold text-slate-900" style={display}>
+      <h1
+        className="mt-3 text-2xl font-semibold text-slate-900"
+        style={display}
+      >
         {course?.title}
       </h1>
 
@@ -335,9 +370,14 @@ const InstructorManageRecordings = () => {
 
       <div className="mt-8 space-y-6">
         {modules.map((module) => (
-          <div key={module.id} className="bg-white rounded-2xl border border-slate-200">
+          <div
+            key={module.id}
+            className="bg-white rounded-2xl border border-slate-200"
+          >
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-              <h2 className="text-sm font-semibold text-slate-900">{module.title}</h2>
+              <h2 className="text-sm font-semibold text-slate-900">
+                {module.title}
+              </h2>
               <button
                 onClick={() => setModalModuleId(module.id)}
                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-600 hover:text-sky-700"
@@ -430,7 +470,7 @@ const InstructorManageRecordings = () => {
                   return {
                     ...m,
                     recordings: m.recordings.map((r) =>
-                      r.id === savedRec.id ? { ...r, ...savedRec } : r
+                      r.id === savedRec.id ? { ...r, ...savedRec } : r,
                     ),
                   };
                 }
@@ -438,7 +478,7 @@ const InstructorManageRecordings = () => {
                 return m.id === modalModuleId
                   ? { ...m, recordings: [...m.recordings, savedRec] }
                   : m;
-              })
+              }),
             );
           }}
         />
