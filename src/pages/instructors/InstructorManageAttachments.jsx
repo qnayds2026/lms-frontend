@@ -100,8 +100,7 @@ const InstructorManageAttachments = () => {
   const [loading, setLoading] = useState(true);
 
   const [title, setTitle] = useState("");
-  const [fileUrl, setFileUrl] = useState("");
-  const [fileType, setFileType] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
   const [adding, setAdding] = useState(false);
 
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -125,26 +124,36 @@ const InstructorManageAttachments = () => {
 
   const handleAdd = async (e) => {
     e.preventDefault();
-    if (!title || !fileUrl) return;
+
+    if (!title || !selectedFile) {
+      return alert("Please provide a title and select a file.");
+    }
 
     try {
       setAdding(true);
-      const res = await api.post("/module-attachments", {
-        moduleId: Number(moduleId),
-        title,
-        fileUrl,
-        fileType,
+      const formData = new FormData();
+
+      formData.append("moduleId", moduleId);
+      formData.append("title", title);
+      formData.append("file", selectedFile);
+
+      const res = await api.post("/module-attachments", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
       const created = res.data?.data || res.data;
+
       setAttachments((prev) => [created, ...prev]);
 
       setTitle("");
-      setFileUrl("");
-      setFileType("");
+      setSelectedFile(null);
+
+      e.target.reset();
     } catch (error) {
       console.error(error);
-      alert(error.response?.data?.message || "Failed to add attachment");
+      alert(error.response?.data?.message || "Failed to upload attachment");
     } finally {
       setAdding(false);
     }
@@ -220,29 +229,22 @@ const InstructorManageAttachments = () => {
 
           <div className="sm:col-span-2">
             <label className="text-xs font-medium text-slate-500" style={mono}>
-              file url
+              Attachment File
             </label>
+
             <input
-              type="text"
-              placeholder="https://..."
-              value={fileUrl}
-              onChange={(e) => setFileUrl(e.target.value)}
-              className="mt-1.5 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100 focus:bg-white transition"
+              type="file"
+              accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.txt,.png,.jpg,.jpeg"
+              onChange={(e) => setSelectedFile(e.target.files[0])}
+              className="mt-1.5 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm file:mr-4 file:rounded-md file:border-0 file:bg-sky-600 file:px-4 file:py-2 file:text-white file:cursor-pointer"
               required
             />
-          </div>
 
-          <div>
-            <label className="text-xs font-medium text-slate-500" style={mono}>
-              file type
-            </label>
-            <input
-              type="text"
-              placeholder="pdf, zip, docx..."
-              value={fileType}
-              onChange={(e) => setFileType(e.target.value)}
-              className="mt-1.5 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100 focus:bg-white transition"
-            />
+            {selectedFile && (
+              <p className="mt-2 text-xs text-slate-500">
+                Selected: <strong>{selectedFile.name}</strong>
+              </p>
+            )}
           </div>
 
           <div className="flex items-end">

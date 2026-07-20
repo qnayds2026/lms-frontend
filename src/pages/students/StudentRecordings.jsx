@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   CheckCircle2,
-  Circle,
   ChevronLeft,
   Lock,
   Terminal,
+  Circle,
+  Paperclip,
+  Download,
 } from "lucide-react";
 import api from "../../api/axios";
 
@@ -26,6 +28,7 @@ const StudentRecordings = () => {
     async function fetchCourseAndRecordings() {
       setLoading(true);
       setError("");
+
       try {
         const courseRes = await api.get(`/courses/${courseId}`);
         const courseData = courseRes.data;
@@ -33,27 +36,35 @@ const StudentRecordings = () => {
 
         const moduleList = courseData?.modules || [];
 
-        const recordingsByModule = await Promise.all(
-          moduleList.map((m) =>
-            api
+        const moduleData = await Promise.all(
+          moduleList.map(async (m) => {
+            const recordings = await api
               .get(`/recordings/module/${m.id}`)
               .then((res) => res.data)
-              .catch(() => []),
-          ),
+              .catch(() => []);
+
+            const attachments = await api
+              .get(`/module-attachments/module/${m.id}`)
+              .then((res) => res.data?.data || res.data || [])
+              .catch(() => []);
+
+            return {
+              id: m.id,
+              title: m.title,
+              recordings,
+              attachments,
+            };
+          }),
         );
 
-        const modulesWithRecordings = moduleList.map((m, i) => ({
-          id: m.id,
-          title: m.title,
-          recordings: recordingsByModule[i] || [],
-        }));
+        setModules(moduleData);
 
-        setModules(modulesWithRecordings);
+        const firstRecording = moduleData.find((m) => m.recordings.length > 0)
+          ?.recordings[0];
 
-        const firstRecording = modulesWithRecordings.find(
-          (m) => m.recordings.length > 0,
-        )?.recordings[0];
-        if (firstRecording) setActiveRecordingId(firstRecording.id);
+        if (firstRecording) {
+          setActiveRecordingId(firstRecording.id);
+        }
       } catch (err) {
         setError(
           err?.response?.data?.message ||
@@ -63,6 +74,7 @@ const StudentRecordings = () => {
         setLoading(false);
       }
     }
+
     fetchCourseAndRecordings();
   }, [courseId]);
 
@@ -224,6 +236,39 @@ const StudentRecordings = () => {
                     );
                   })}
                 </ul>
+                {module.attachments?.length > 0 && (
+                  <div className="border-t border-slate-100 bg-slate-50">
+                    <div className="px-4 py-2 flex items-center gap-2">
+                      <Paperclip className="w-4 h-4 text-purple-600" />
+                      <span
+                        className="text-xs font-semibold uppercase text-slate-500"
+                        style={mono}
+                      >
+                        Attachments
+                      </span>
+                    </div>
+
+                    <div className="pb-2">
+                      {module.attachments.map((attachment) => (
+                        <a
+                          key={attachment.id}
+                          href={attachment.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          download
+                          className="flex items-center justify-between px-4 py-3 hover:bg-purple-50 transition group"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-purple-600 font-medium hidden sm:block">
+                              Download
+                            </span>
+                            <Download className="w-4 h-4 text-purple-600 group-hover:scale-110 transition-transform" />
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
 
