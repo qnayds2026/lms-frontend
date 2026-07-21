@@ -1,6 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, BookOpen, Terminal, Plus, Trash2, PlaySquare, Video, X, Eye, EyeOff } from "lucide-react";
+import {
+  Search,
+  BookOpen,
+  Terminal,
+  Plus,
+  Trash2,
+  PlaySquare,
+  Video,
+  X,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import api from "../../api/axios";
 
 const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');`;
@@ -25,23 +36,46 @@ function RowSkeleton() {
     </tr>
   );
 }
-
 function CreateCourseModal({ onClose, onCreated }) {
-  const [form, setForm] = useState({ title: "", description: "", thumbnail: "", price: 0 });
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    thumbnail: "",
+    price: 0,
+    instructorId: "",
+  });
+
+  const [instructors, setInstructors] = useState([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchInstructors = async () => {
+      try {
+        const res = await api.get("/admin/instructors");
+        setInstructors(res.data);
+      } catch (err) {
+        console.error("Failed to load instructors", err);
+      }
+    };
+
+    fetchInstructors();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSaving(true);
+
     try {
       const res = await api.post("/courses", {
         title: form.title,
         description: form.description,
         thumbnail: form.thumbnail || undefined,
         price: Number(form.price) || 0,
+        instructorId: Number(form.instructorId),
       });
+
       onCreated(res.data);
       onClose();
     } catch (err) {
@@ -60,43 +94,90 @@ function CreateCourseModal({ onClose, onCreated }) {
         >
           <X className="w-5 h-5" />
         </button>
+
         <h3 className="text-lg font-semibold text-slate-900" style={display}>
           Create Course
         </h3>
+
         {error && (
           <div className="mt-3 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-600">
             {error}
           </div>
         )}
+
         <form onSubmit={handleSubmit} className="mt-4 space-y-3">
           <input
             required
             placeholder="Course title"
             value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                title: e.target.value,
+              })
+            }
             className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
           />
+
           <textarea
             placeholder="Description (optional)"
             value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                description: e.target.value,
+              })
+            }
             className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
             rows={3}
           />
+
           <input
             placeholder="Thumbnail URL (optional)"
             value={form.thumbnail}
-            onChange={(e) => setForm({ ...form, thumbnail: e.target.value })}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                thumbnail: e.target.value,
+              })
+            }
             className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
           />
+
           <input
             type="number"
             min="0"
             placeholder="Price (0 for free)"
             value={form.price}
-            onChange={(e) => setForm({ ...form, price: e.target.value })}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                price: e.target.value,
+              })
+            }
             className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
           />
+
+          <select
+            required
+            value={form.instructorId}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                instructorId: e.target.value,
+              })
+            }
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+          >
+            <option value="">Select Instructor</option>
+
+            {instructors.map((instructor) => (
+              <option key={instructor.id} value={instructor.id}>
+                {instructor.name}
+              </option>
+            ))}
+          </select>
+
           <button
             type="submit"
             disabled={saving}
@@ -104,11 +185,6 @@ function CreateCourseModal({ onClose, onCreated }) {
           >
             {saving ? "Creating..." : "Create Course"}
           </button>
-          <p className="text-xs text-slate-400 text-center pt-1">
-            Note: this course will be created under your own admin account as
-            instructor, since there's currently no way to assign a different
-            instructor at creation time.
-          </p>
         </form>
       </div>
     </div>
@@ -140,7 +216,11 @@ export default function AdminCourses() {
   }, []);
 
   const handleDelete = async (courseId, title) => {
-    if (!confirm(`Delete "${title}"? This also deletes its modules, recordings, live classes, and enrollments. This cannot be undone.`)) {
+    if (
+      !confirm(
+        `Delete "${title}"? This also deletes its modules, recordings, live classes, and enrollments. This cannot be undone.`,
+      )
+    ) {
       return;
     }
     try {
@@ -157,7 +237,9 @@ export default function AdminCourses() {
         isPublished: !course.isPublished,
       });
       setCourses((prev) =>
-        prev.map((c) => (c.id === course.id ? { ...c, isPublished: res.data.isPublished } : c))
+        prev.map((c) =>
+          c.id === course.id ? { ...c, isPublished: res.data.isPublished } : c,
+        ),
       );
     } catch (err) {
       alert(err?.response?.data?.message || "Failed to update publish status.");
@@ -187,7 +269,10 @@ export default function AdminCourses() {
           >
             <Terminal className="w-3.5 h-3.5" /> courses
           </span>
-          <h1 className="mt-3 text-3xl font-semibold text-slate-900" style={display}>
+          <h1
+            className="mt-3 text-3xl font-semibold text-slate-900"
+            style={display}
+          >
             Courses
           </h1>
           <p className="text-slate-500 mt-1.5 text-sm">
@@ -246,7 +331,10 @@ export default function AdminCourses() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-slate-400 text-xs uppercase tracking-wider" style={mono}>
+              <tr
+                className="text-left text-slate-400 text-xs uppercase tracking-wider"
+                style={mono}
+              >
                 <th className="px-5 py-3 font-medium">Course</th>
                 <th className="px-5 py-3 font-medium">Instructor</th>
                 <th className="px-5 py-3 font-medium">Price</th>
@@ -256,8 +344,7 @@ export default function AdminCourses() {
               </tr>
             </thead>
             <tbody>
-              {loading &&
-                [0, 1, 2, 3].map((i) => <RowSkeleton key={i} />)}
+              {loading && [0, 1, 2, 3].map((i) => <RowSkeleton key={i} />)}
 
               {!loading &&
                 filtered.map((course) => (
