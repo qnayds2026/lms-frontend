@@ -8,8 +8,6 @@ import {
   Lock,
   Eye,
   EyeOff,
-  GraduationCap,
-  UserCog,
   ArrowRight,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -29,7 +27,6 @@ const Register = () => {
     phone: "",
     password: "",
     confirmPassword: "",
-    role: "STUDENT",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -42,8 +39,6 @@ const Register = () => {
       [e.target.name]: e.target.value,
     });
   };
-
-  const setRole = (role) => setFormData((f) => ({ ...f, role }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -59,7 +54,7 @@ const Register = () => {
         email: formData.email,
         phone: formData.phone,
         password: formData.password,
-        role: formData.role,
+        role: "STUDENT",
       };
 
       const res = await api.post("/auth/register", payload);
@@ -69,20 +64,9 @@ const Register = () => {
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
 
-      console.log("Response:", res.data);
-      console.log("User:", user);
-      console.log("Role:", user.role);
-      console.log("Token:", token);
-
       alert("Registration successful");
 
-      if (user.role === "ADMIN") {
-        navigate("/admin/dashboard");
-      } else if (user.role === "INSTRUCTOR") {
-        navigate("/instructor/dashboard");
-      } else {
-        navigate("/student/dashboard");
-      }
+      navigate("/student/dashboard");
     } catch (error) {
       console.error(error);
 
@@ -162,42 +146,6 @@ const Register = () => {
                 className={inputBase}
                 onChange={handleChange}
               />
-            </div>
-
-            {/* Role picker */}
-            <div>
-              <p
-                className="text-xs font-medium text-slate-500 mb-2"
-                style={mono}
-              >
-                i_am_a
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setRole("STUDENT")}
-                  className={`flex items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-medium transition ${
-                    formData.role === "STUDENT"
-                      ? "border-sky-500 bg-sky-50 text-sky-700 ring-4 ring-sky-100"
-                      : "border-slate-200 text-slate-500 hover:border-slate-300"
-                  }`}
-                >
-                  <GraduationCap className="w-4 h-4" />
-                  Student
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRole("INSTRUCTOR")}
-                  className={`flex items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-medium transition ${
-                    formData.role === "INSTRUCTOR"
-                      ? "border-sky-500 bg-sky-50 text-sky-700 ring-4 ring-sky-100"
-                      : "border-slate-200 text-slate-500 hover:border-slate-300"
-                  }`}
-                >
-                  <UserCog className="w-4 h-4" />
-                  Instructor
-                </button>
-              </div>
             </div>
 
             <div className="relative">
