@@ -32,7 +32,7 @@ import AdminManageLiveClasses from "./pages/admin/AdminManageLiveclass";
 import UsersList from "./pages/admin/UsersList";
 import AdminPaymentList from "./pages/admin/AdminPaymentList";
 import InstructorManageAttachments from "./pages/instructors/InstructorManageAttachments";
-
+import CourseDetail from "./pages/CourseDetails";
 const App = () => {
   return (
     <Router>
@@ -41,6 +41,7 @@ const App = () => {
           <Route index element={<Home />} />
           <Route path="about" element={<About />} />
           <Route path="courses" element={<Courses />} />
+          <Route path="courses/:id" element={<CourseDetail />} />
         </Route>
         {/* Student */}
         <Route path="/student" element={<StudentLayout />}>

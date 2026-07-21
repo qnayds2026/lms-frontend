@@ -1,100 +1,77 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Clock } from "lucide-react";
-
-const coursesData = [
-  {
-    slug: "30-days-hacking",
-    img: "hacking.png",
-    title: "30 Days Hacking Course",
-    desc: "Build a strong foundation in cybersecurity with our 30-Day Intensive Program.",
-    duration: "30 Days",
-    level: "Beginner",
-  },
-  {
-    slug: "advanced-excel-ai",
-    img: "Using Ai.png",
-    title: "Advanced Excel Using AI",
-    desc: "Master Excel like a professional using the power of AI in this 30-day intensive program.",
-    duration: "30 Days",
-    level: "Intermediate",
-  },
-  {
-    slug: "advanced-cybersecurity",
-    img: "cybersecurity.png",
-    title: "Advanced Cybersecurity Course",
-    desc: "A job-oriented professional program covering advanced, real-world security skills.",
-    duration: "45 Days",
-    level: "Advanced",
-  },
-  {
-    slug: "ai-poster-designing",
-    img: "ai poster.png",
-    title: "Advanced AI Poster Designing",
-    desc: "Master the art of professional poster creation using cutting-edge AI tools.",
-    duration: "15 Days",
-    level: "Beginner",
-  },
-  {
-    slug: "ai-for-teachers",
-    img: "ai for teachers.png",
-    title: "AI for Teachers",
-    desc: "Empower your classroom with artificial intelligence and modern teaching tools.",
-    duration: "10 Days",
-    level: "Beginner",
-  },
-  {
-    slug: "robotics and iot",
-    img: "robotics.png",
-    title: "Robotics and IoT",
-    desc: "Learn the basics of robotics — sensors, actuators, and control systems — through hands-on builds Design and build connected devices, from microcontrollers to cloud dashboards.",
-    duration: "30 Days",
-    level: "Beginner",
-  },
-];
+import { ArrowRight } from "lucide-react";
+import api from "../api/axios";
 
 function CourseCard({ course }) {
   return (
-    <div className="group rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg hover:border-[#0284c7]/30 transition-all">
+    <Link
+      to={`/courses/${course.id}`}
+      className="group rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg hover:border-[#0284c7]/30 transition-all block"
+    >
       {/* Thumbnail */}
       <div className="aspect-[16/10] w-full overflow-hidden bg-slate-100">
-        <img
-          src={course.img}
-          alt={course.title}
-          className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
-        />
+        {course.thumbnail ? (
+          <img
+            src={course.thumbnail}
+            alt={course.title}
+            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <div className="h-full w-full bg-slate-100" />
+        )}
       </div>
 
       <div className="p-5">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-xs font-semibold text-[#0284c7] bg-[#0284c7]/10 px-2 py-0.5 rounded-full">
-            {course.level}
-          </span>
-          <span className="flex items-center gap-1 text-xs text-slate-400">
-            <Clock className="h-3 w-3" />
-            {course.duration}
-          </span>
-        </div>
+        {course.instructor?.name && (
+          <p className="text-xs font-semibold text-[#0284c7] mb-2">
+            {course.instructor.name}
+          </p>
+        )}
 
         <h3 className="text-base font-semibold text-slate-900 leading-snug">
           {course.title}
         </h3>
-        <p className="mt-1.5 text-sm text-slate-500 line-clamp-2">
-          {course.desc}
-        </p>
+        {course.description && (
+          <p className="mt-1.5 text-sm text-slate-500 line-clamp-2">
+            {course.description}
+          </p>
+        )}
 
-        <Link
-          to={`/courses/${course.slug}`}
-          className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[#0284c7] hover:gap-2.5 transition-all"
-        >
+        <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[#0284c7] group-hover:gap-2.5 transition-all">
           View Course
           <ArrowRight className="h-4 w-4" />
-        </Link>
+        </span>
       </div>
-    </div>
+    </Link>
   );
 }
 
 export default function Courses() {
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    api
+      .get("/courses")
+      .then((res) => {
+        if (!cancelled) setCourses(res.data);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.message || "Failed to load courses");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <div className="bg-white min-h-screen">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14">
@@ -112,12 +89,25 @@ export default function Courses() {
           </p>
         </div>
 
-        {/* Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {coursesData.map((course) => (
-            <CourseCard key={course.slug} course={course} />
-          ))}
-        </div>
+        {loading && (
+          <p className="text-center text-slate-400">Loading courses...</p>
+        )}
+
+        {!loading && error && (
+          <p className="text-center text-red-500">{error}</p>
+        )}
+
+        {!loading && !error && courses.length === 0 && (
+          <p className="text-center text-slate-400">No courses available yet.</p>
+        )}
+
+        {!loading && !error && courses.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {courses.map((course) => (
+              <CourseCard key={course.id} course={course} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
