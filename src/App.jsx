@@ -33,6 +33,7 @@ import UsersList from "./pages/admin/UsersList";
 import AdminPaymentList from "./pages/admin/AdminPaymentList";
 import InstructorManageAttachments from "./pages/instructors/InstructorManageAttachments";
 import CourseDetail from "./pages/CourseDetails";
+import ActivateAccount from "./pages/ActivateAccount";
 const App = () => {
   return (
     <Router>
@@ -104,6 +105,7 @@ const App = () => {
         {/* Auth pages rendered standalone, without the public Navbar/Footer */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/activate-account" element={<ActivateAccount />} />
       </Routes>
     </Router>
   );
