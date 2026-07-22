@@ -9,7 +9,7 @@ import Register from "./pages/Register";
 import StudentDashboard from "./pages/students/StudentDashboard";
 import StudentLayout from "./layoutes/studentLayoutes/StudentLayout";
 import StudentMyCourses from "./pages/students/StudentMyCourses";
-import StudentLiveClasses from "./pages/students/Studentliveclass";
+import StudentLiveClasses from "./pages/students/StudentLiveclass";
 import StudentRecordings from "./pages/students/StudentRecordings";
 import Notifications from "./pages/students/Notifications";
 import InstructorLayout from "./layoutes/instructorLayoutes/InstructorLayout";
