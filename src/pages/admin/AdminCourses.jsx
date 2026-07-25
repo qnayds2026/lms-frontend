@@ -6,6 +6,7 @@ import {
   Terminal,
   Plus,
   Trash2,
+  Pencil,
   PlaySquare,
   Video,
   X,
@@ -191,6 +192,175 @@ function CreateCourseModal({ onClose, onCreated }) {
   );
 }
 
+function EditCourseModal({ course, onClose, onSaved }) {
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    thumbnail: "",
+    price: 0,
+    instructorId: "",
+  });
+
+  const [instructors, setInstructors] = useState([]);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (course) {
+      setForm({
+        title: course.title || "",
+        description: course.description || "",
+        thumbnail: course.thumbnail || "",
+        price: course.price || 0,
+        instructorId: course.instructorId ?? course.instructor?.id ?? "",
+      });
+    }
+  }, [course]);
+
+  useEffect(() => {
+    const fetchInstructors = async () => {
+      try {
+        const res = await api.get("/admin/instructors");
+        setInstructors(res.data);
+      } catch (err) {
+        console.error("Failed to load instructors", err);
+      }
+    };
+
+    fetchInstructors();
+  }, []);
+
+  if (!course) return null;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSaving(true);
+
+    try {
+      const res = await api.put(`/courses/${course.id}`, {
+        title: form.title,
+        description: form.description,
+        thumbnail: form.thumbnail || undefined,
+        price: Number(form.price) || 0,
+        instructorId: Number(form.instructorId),
+      });
+
+      onSaved(res.data);
+      onClose();
+    } catch (err) {
+      setError(err?.response?.data?.message || "Failed to update course.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/40 flex items-center justify-center z-50 px-4">
+      <div className="bg-white rounded-2xl w-full max-w-md p-6 relative">
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 text-slate-400 hover:text-slate-600"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <h3 className="text-lg font-semibold text-slate-900" style={display}>
+          Edit Course
+        </h3>
+
+        {error && (
+          <div className="mt-3 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-600">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+          <input
+            required
+            placeholder="Course title"
+            value={form.title}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                title: e.target.value,
+              })
+            }
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+          />
+
+          <textarea
+            placeholder="Description (optional)"
+            value={form.description}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                description: e.target.value,
+              })
+            }
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+            rows={3}
+          />
+
+          <input
+            placeholder="Thumbnail URL (optional)"
+            value={form.thumbnail}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                thumbnail: e.target.value,
+              })
+            }
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+          />
+
+          <input
+            type="number"
+            min="0"
+            placeholder="Price (0 for free)"
+            value={form.price}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                price: e.target.value,
+              })
+            }
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+          />
+
+          <select
+            required
+            value={form.instructorId}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                instructorId: e.target.value,
+              })
+            }
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+          >
+            <option value="">Select Instructor</option>
+
+            {instructors.map((instructor) => (
+              <option key={instructor.id} value={instructor.id}>
+                {instructor.name}
+              </option>
+            ))}
+          </select>
+
+          <button
+            type="submit"
+            disabled={saving}
+            className="w-full bg-sky-600 hover:bg-sky-700 disabled:opacity-60 text-white py-2.5 rounded-lg font-medium text-sm transition"
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminCourses() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -198,6 +368,7 @@ export default function AdminCourses() {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all"); // all | published | draft
   const [createOpen, setCreateOpen] = useState(false);
+  const [editingCourse, setEditingCourse] = useState(null);
 
   useEffect(() => {
     async function fetchCourses() {
@@ -244,6 +415,12 @@ export default function AdminCourses() {
     } catch (err) {
       alert(err?.response?.data?.message || "Failed to update publish status.");
     }
+  };
+
+  const handleCourseSaved = (updated) => {
+    setCourses((prev) =>
+      prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)),
+    );
   };
 
   const filtered = courses.filter((c) => {
@@ -399,6 +576,13 @@ export default function AdminCourses() {
                           )}
                           {course.isPublished ? "Unpublish" : "Publish"}
                         </button>
+                        <button
+                          onClick={() => setEditingCourse(course)}
+                          className="flex items-center justify-center h-8 w-8 rounded-lg text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-colors"
+                          title="Edit Course"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
                         <Link
                           to={`/admin/courses/${course.id}/recordings`}
                           className="flex items-center justify-center h-8 w-8 rounded-lg text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-colors"
@@ -444,6 +628,14 @@ export default function AdminCourses() {
         <CreateCourseModal
           onClose={() => setCreateOpen(false)}
           onCreated={(newCourse) => setCourses((prev) => [newCourse, ...prev])}
+        />
+      )}
+
+      {editingCourse && (
+        <EditCourseModal
+          course={editingCourse}
+          onClose={() => setEditingCourse(null)}
+          onSaved={handleCourseSaved}
         />
       )}
     </div>
