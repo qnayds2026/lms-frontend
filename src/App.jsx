@@ -34,7 +34,7 @@ import AdminPaymentList from "./pages/admin/AdminPaymentList";
 import InstructorManageAttachments from "./pages/instructors/InstructorManageAttachments";
 import CourseDetail from "./pages/CourseDetails";
 import ActivateAccount from "./pages/ActivateAccount";
-import ForgotPassword from "./pages/Forgetpassword";
+import ForgotPassword from "./pages/ForgetPassword";
 import ResetPassword from "./pages/ResetPassword";
 const App = () => {
   return (
