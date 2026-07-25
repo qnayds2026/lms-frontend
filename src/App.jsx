@@ -34,6 +34,8 @@ import AdminPaymentList from "./pages/admin/AdminPaymentList";
 import InstructorManageAttachments from "./pages/instructors/InstructorManageAttachments";
 import CourseDetail from "./pages/CourseDetails";
 import ActivateAccount from "./pages/ActivateAccount";
+import ForgotPassword from "./pages/Forgetpassword";
+import ResetPassword from "./pages/ResetPassword";
 const App = () => {
   return (
     <Router>
@@ -106,6 +108,8 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/activate-account" element={<ActivateAccount />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+<Route path="/reset-password/:token" element={<ResetPassword />} />
       </Routes>
     </Router>
   );
