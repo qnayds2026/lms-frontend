@@ -14,6 +14,7 @@ import {
   Award,
   Quote,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');`;
 
@@ -143,25 +144,62 @@ const MENTORS = [
 const TESTIMONIALS = [
   {
     quote:
-      "The labs are the whole point — I broke things in a sandbox first, so I stopped breaking them at work.",
-    name: "Rohit S.",
-    role: "Cybersecurity track",
+      "I recently completed an online internship program, and it was an incredible learning experience. The sessions were well-structured, practical, and easy to understand. The mentors explained every concept clearly, making learning enjoyable.",
+    name: "Fahad Haris",
+    role: "Artificial Intelligence Internship",
+    rating: 5,
+    time: "9 months ago",
+    initials: "FH",
   },
   {
     quote:
-      "Recordings meant I never fell behind, even with a full-time job. Mentors kept me accountable.",
-    name: "Meera J.",
-    role: "Full Stack track",
+      "The 5-day Artificial Intelligence internship exceeded my expectations. Every session was informative and engaging, helping me strengthen my fundamentals. The mentor was supportive throughout the program.",
+    name: "Aiswarya K R",
+    role: "Artificial Intelligence Internship",
+    rating: 5,
+    time: "8 months ago",
+    initials: "AK",
   },
   {
     quote:
-      "I went from zero ML background to shipping a working model in twelve weeks.",
-    name: "Fahad K.",
-    role: "AI track",
+      "The internship provided an excellent introduction to Artificial Intelligence and Machine Learning. The practical approach and supportive instructors made it easy to understand complex concepts.",
+    name: "Abhijith M",
+    role: "AI & Machine Learning Internship",
+    rating: 5,
+    time: "9 months ago",
+    initials: "AM",
+  },
+  {
+    quote:
+      "I recently completed the 5-day internship program, and it was an amazing learning journey. The mentor guided us throughout the course, making every session interactive and valuable.",
+    name: "Aswan Raj D",
+    role: "Technology Internship",
+    rating: 5,
+    time: "9 months ago",
+    initials: "AR",
+  },
+  {
+    quote:
+      "The Artificial Intelligence and Machine Learning internship was well organized with quality study materials and practical examples. The mentors were friendly and always ready to help.",
+    name: "Sreerag V R",
+    role: "AI & Machine Learning Internship",
+    rating: 5,
+    time: "9 months ago",
+    initials: "SR",
+  },
+  {
+    quote:
+      "This internship gave me valuable hands-on experience in Artificial Intelligence. The sessions were clear, engaging, and focused on real-world applications, making the learning experience truly worthwhile.",
+    name: "Mohammed Shibin",
+    role: "Artificial Intelligence Internship",
+    rating: 5,
+    time: "11 months ago",
+    initials: "MS",
   },
 ];
 
 const Home = () => {
+  const navigate = useNavigate();
   return (
     <div
       className="bg-white text-slate-900"
@@ -195,10 +233,16 @@ const Home = () => {
               certifications, and career acceleration programs.
             </p>
             <div className="flex flex-wrap gap-4 mt-8">
-              <button className="bg-sky-600 hover:bg-sky-700 text-white font-medium px-7 py-3 rounded-lg transition inline-flex items-center gap-2">
+              <button
+                onClick={() => navigate("/courses")}
+                className="bg-sky-600 hover:bg-sky-700 text-white font-medium px-7 py-3 rounded-lg transition inline-flex items-center gap-2"
+              >
                 Explore courses <ArrowRight className="w-4 h-4" />
               </button>
-              <button className="border border-slate-300 text-slate-700 px-7 py-3 rounded-lg hover:border-sky-400 hover:text-sky-700 transition">
+              <button
+                onClick={() => navigate("/login")}
+                className="border border-slate-300 text-slate-700 px-7 py-3 rounded-lg hover:border-sky-400 hover:text-sky-700 transition"
+              >
                 Join now
               </button>
             </div>
@@ -350,7 +394,10 @@ const Home = () => {
           Pick a track, join a live session this week, and see if it's a fit —
           no long-term commitment required.
         </p>
-        <button className="mt-8 bg-sky-600 hover:bg-sky-700 text-white font-medium px-8 py-3.5 rounded-lg transition inline-flex items-center gap-2">
+        <button
+          onClick={() => navigate("courses")}
+          className="mt-8 bg-sky-600 hover:bg-sky-700 text-white font-medium px-8 py-3.5 rounded-lg transition inline-flex items-center gap-2"
+        >
           Explore courses <ArrowRight className="w-4 h-4" />
         </button>
       </section>
