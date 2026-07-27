@@ -69,36 +69,30 @@ const App = () => {
             path="courses/:courseId/live-classes"
             element={<InstructorManageLiveClasses />}
           />
+          <Route path="live-classes" element={<InstructorLiveClassesList />} />
+          <Route path="modules" element={<InstructorModulesList />} />
           <Route
-            path="/instructor/live-classes"
-            element={<InstructorLiveClassesList />}
-          />
-          <Route
-            path="/instructor/modules"
-            element={<InstructorModulesList />}
-          />
-          <Route
-            path="/instructor/courses/:courseId/modules"
+            path="courses/:courseId/modules"
             element={<InstructorManageModules />}
           />
           <Route
-            path="/instructor/modules/:moduleId/attachments"
+            path="modules/:moduleId/attachments"
             element={<InstructorManageAttachments />}
           />
         </Route>
         <Route path="/admin" element={<AdminLayout />}>
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/courses" element={<AdminCourses />} />
-          <Route path="/admin/instructors" element={<AdminInstructors />} />
-          <Route path="/admin/users" element={<UsersList />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="courses" element={<AdminCourses />} />
+          <Route path="instructors" element={<AdminInstructors />} />
+          <Route path="users" element={<UsersList />} />
           <Route path="instructors/:id" element={<AdminInstructorDetail />} />
-          <Route path="/admin/payments" element={<AdminPaymentList />} />
+          <Route path="payments" element={<AdminPaymentList />} />
           <Route
-            path="/admin/courses/:courseId/recordings"
+            path="courses/:courseId/recordings"
             element={<AdminManageRecordings />}
           />
           <Route
-            path="/admin/courses/:courseId/live-classes"
+            path="courses/:courseId/live-classes"
             element={<AdminManageLiveClasses />}
           />
         </Route>
