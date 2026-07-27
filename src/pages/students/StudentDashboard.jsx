@@ -56,7 +56,7 @@ const COLOR_MAP = {
 };
 
 const ACTIONS = [
-  { label: "Browse Courses", icon: Compass, primary: true, path: "/courses" },
+  { label: "Browse Courses", icon: Compass, primary: true },
   {
     label: "My Courses",
     icon: GraduationCap,
