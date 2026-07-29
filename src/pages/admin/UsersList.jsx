@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import {
   Users,
   GraduationCap,
+  PhoneCall,
+  MessageCircle,
   Shield,
   Search,
   UserCog,
@@ -106,6 +108,15 @@ function UserDetailsModal({ userId, onClose }) {
 
   if (!userId) return null;
 
+  const whatsappNumber = details?.phone
+    ? details.phone.replace(/\D/g, "").replace(/^0/, "")
+    : "";
+
+  const formattedWhatsapp =
+    whatsappNumber && whatsappNumber.length === 10
+      ? `91${whatsappNumber}`
+      : whatsappNumber;
+
   return (
     <div className="fixed inset-0 z-100">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
@@ -167,11 +178,39 @@ function UserDetailsModal({ userId, onClose }) {
                     {details.email}
                   </p>
                 </div>
-                <div className="flex items-center gap-3 px-4 py-3">
-                  <Phone className="w-4 h-4 text-slate-400 shrink-0" />
-                  <p className="text-sm text-slate-700">
-                    {details.phone || "Not added"}
-                  </p>
+                <div className="flex items-center justify-between px-4 py-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Phone className="w-4 h-4 text-slate-400 shrink-0" />
+
+                    <p className="text-sm text-slate-700 truncate">
+                      {details.phone || "Not added"}
+                    </p>
+                  </div>
+
+                  {details.phone && (
+                    <div className="flex items-center gap-2">
+                      {/* Call */}
+                      <a
+                        href={`tel:${details.phone}`}
+                        title="Call User"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-blue-600 hover:bg-blue-50 transition"
+                      >
+                        <PhoneCall className="w-4 h-4" />
+                      </a>
+
+                      {/* WhatsApp */}
+
+                      <a
+                        href={`https://wa.me/${formattedWhatsapp}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Chat on WhatsApp"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-green-600 hover:bg-green-50 transition"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                      </a>
+                    </div>
+                  )}
                 </div>
                 {details.createdAt && (
                   <div className="flex items-center gap-3 px-4 py-3">
@@ -481,10 +520,8 @@ const UsersList = () => {
 
       setUsers((prev) =>
         prev.map((u) =>
-          u.id === id
-            ? { ...u, isActive: updatedUser.isActive }
-            : u
-        )
+          u.id === id ? { ...u, isActive: updatedUser.isActive } : u,
+        ),
       );
     } catch (error) {
       console.error(error);
