@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { BookOpen, Eye, EyeOff } from "lucide-react";
 import axiosInstance from "../api/axios";
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -45,11 +46,47 @@ export default function Login() {
       }
     } catch (err) {
       setError(
-        err?.response?.data?.message || "Invalid email or password. Please try again."
+        err?.response?.data?.message ||
+          "Invalid email or password. Please try again.",
       );
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const res = await axiosInstance.post("/auth/google", {
+        idToken: credentialResponse.credential,
+      });
+
+      const token = res.data?.data?.token;
+      const user = res.data?.data?.user;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      if (user.role === "ADMIN") {
+        navigate("/admin/dashboard");
+      } else if (user.role === "INSTRUCTOR") {
+        navigate("/instructor/dashboard");
+      } else {
+        navigate("/student/dashboard");
+      }
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Google login failed. Please try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError("Google Sign-In failed");
   };
 
   return (
@@ -60,8 +97,12 @@ export default function Login() {
           <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#0284c7]/10">
             <BookOpen className="h-6 w-6 text-[#0284c7]" strokeWidth={2} />
           </span>
-          <h1 className="mt-4 text-2xl font-semibold text-slate-900">Welcome back</h1>
-          <p className="mt-1 text-sm text-slate-500">Log in to continue to Qnayds</p>
+          <h1 className="mt-4 text-2xl font-semibold text-slate-900">
+            Welcome back
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Log in to continue to Qnayds
+          </p>
         </div>
 
         {error && (
@@ -72,7 +113,10 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-slate-700 mb-1"
+            >
               Email address
             </label>
             <input
@@ -89,10 +133,16 @@ export default function Login() {
 
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label htmlFor="password" className="block text-sm font-medium text-slate-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-slate-700"
+              >
                 Password
               </label>
-              <Link to="/forgot-password" className="text-xs text-[#0284c7] hover:underline">
+              <Link
+                to="/forgot-password"
+                className="text-xs text-[#0284c7] hover:underline"
+              >
                 Forgot password?
               </Link>
             </div>
@@ -113,7 +163,11 @@ export default function Login() {
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
               </button>
             </div>
           </div>
@@ -125,11 +179,34 @@ export default function Login() {
           >
             {loading ? "Logging in..." : "Log In"}
           </button>
-        </form>
+          <div className="relative my-5">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-200"></div>
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-3 text-slate-400">
+                Or continue with
+              </span>
+            </div>
+          </div>
 
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+              theme="outline"
+              size="large"
+              shape="pill"
+              width="320"
+            />
+          </div>
+        </form>
         <p className="mt-6 text-center text-sm text-slate-500">
           Don't have an account?{" "}
-          <Link to="/register" className="text-[#0284c7] font-medium hover:underline">
+          <Link
+            to="/register"
+            className="text-[#0284c7] font-medium hover:underline"
+          >
             Register
           </Link>
         </p>
