@@ -300,9 +300,10 @@ const AdminManageRecordings = () => {
   const [editingRecording, setEditingRecording] = useState(null); // { moduleId, recording }
   const [deletingId, setDeletingId] = useState(null);
 
-  // NEW: module add/edit state
+  // NEW: module add/edit/delete state
   const [addModuleOpen, setAddModuleOpen] = useState(false);
   const [editingModule, setEditingModule] = useState(null);
+  const [deletingModuleId, setDeletingModuleId] = useState(null);
 
   // NEW: drag-and-drop state
   const dragModuleId = useRef(null);
@@ -418,6 +419,32 @@ const AdminManageRecordings = () => {
     setModules((prev) =>
       prev.map((m) => (m.id === updated.id ? { ...m, title: updated.title } : m))
     );
+  };
+
+  const handleDeleteModule = async (module) => {
+    const recordingCount = module.recordings.length;
+    const warning =
+      recordingCount > 0
+        ? `Delete "${module.title}"? This will also delete ${recordingCount} recording${
+            recordingCount === 1 ? "" : "s"
+          } inside it. This can't be undone.`
+        : `Delete "${module.title}"? This can't be undone.`;
+
+    if (!window.confirm(warning)) return;
+
+    setDeletingModuleId(module.id);
+    try {
+      await api.delete(`/modules/${module.id}`);
+      setModules((prev) => prev.filter((m) => m.id !== module.id));
+    } catch (err) {
+      alert(
+        err?.response?.data?.error ||
+          err?.response?.data?.message ||
+          "Failed to delete module."
+      );
+    } finally {
+      setDeletingModuleId(null);
+    }
   };
 
   // NEW: drag-and-drop reordering within a module
@@ -545,6 +572,15 @@ const AdminManageRecordings = () => {
                   title="Edit module"
                 >
                   <Pencil className="h-3.5 w-3.5" />
+                </button>
+                {/* NEW: Delete module button */}
+                <button
+                  onClick={() => handleDeleteModule(module)}
+                  disabled={deletingModuleId === module.id}
+                  className="inline-flex items-center justify-center h-6 w-6 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                  title="Delete module"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
                 </button>
                 {reordering === module.id && (
                   <span className="text-xs text-slate-400" style={mono}>
