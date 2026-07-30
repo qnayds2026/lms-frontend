@@ -30,6 +30,7 @@ export default function ActivateAccount() {
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -54,12 +55,19 @@ export default function ActivateAccount() {
 
       setTimeout(() => {
         navigate("/login");
-      }, 2500);
+      }, 5000);
     } catch (err) {
       alert(err.response?.data?.message || "Activation failed.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const goToLogin = () => {
+    if (redirecting) return;
+
+    setRedirecting(true);
+    navigate("/login");
   };
 
   return (
@@ -90,32 +98,77 @@ export default function ActivateAccount() {
             $ activate --account
           </span>
 
-          <h1
-            className="mt-4 text-3xl font-semibold text-slate-900"
-            style={display}
-          >
-            Activate your account
-          </h1>
+          {success ? (
+            <>
+              <h1
+                className="mt-4 text-3xl font-semibold text-slate-900"
+                style={display}
+              >
+                Account Activated
+              </h1>
 
-          <p className="mt-2 text-sm text-slate-500">
-            Create your password to access your QNAYDS LMS account.
-          </p>
+              <p className="mt-2 text-sm text-slate-500">
+                Your QNAYDS LMS account is ready to use.
+              </p>
+            </>
+          ) : (
+            <>
+              <h1
+                className="mt-4 text-3xl font-semibold text-slate-900"
+                style={display}
+              >
+                Activate your account
+              </h1>
+
+              <p className="mt-2 text-sm text-slate-500">
+                Create your password to access your QNAYDS LMS account.
+              </p>
+            </>
+          )}
 
           {success ? (
             <div className="mt-8 text-center">
-              <CheckCircle className="mx-auto h-16 w-16 text-green-500" />
+              <CheckCircle className="mx-auto h-20 w-20 text-green-500" />
 
-              <h2 className="mt-5 text-xl font-semibold text-slate-900">
-                Account Activated 🎉
+              <h2
+                className="mt-6 text-3xl font-bold text-slate-900"
+                style={display}
+              >
+                Welcome to QNAYDS Academy 🎉
               </h2>
 
-              <p className="mt-2 text-sm text-slate-500">
-                Your account has been activated successfully.
+              <p className="mt-4 text-slate-600">
+                Your QNAYDS LMS account has been activated successfully.
               </p>
 
-              <p className="mt-1 text-sm text-slate-500">
-                Redirecting to login...
+              <p className="mt-2 text-slate-500">
+                You can now log in and start your learning journey.
               </p>
+
+              <div className="mt-8">
+                <button
+                  onClick={goToLogin}
+                  disabled={redirecting}
+                  className="w-full bg-sky-600 hover:bg-sky-700 disabled:bg-sky-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition"
+                >
+                  {redirecting ? "Opening LMS..." : "Login to QNAYDS LMS"}
+                </button>
+              </div>
+
+              <p className="mt-5 text-sm text-slate-400">
+                You'll be redirected to the login page in 5 seconds.
+              </p>
+
+              <div className="mt-8 border-t border-slate-200 pt-5">
+                <p className="text-sm text-slate-500">Need help?</p>
+
+                <a
+                  href="mailto:career.qnayds@gmail.com"
+                  className="text-sky-600 hover:text-sky-700 font-medium"
+                >
+                  career.qnayds@gmail.com
+                </a>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="mt-8 space-y-4">
