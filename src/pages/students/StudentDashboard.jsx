@@ -20,6 +20,7 @@ import {
   Heart,
   Check,
   X,
+  Share2,
 } from "lucide-react";
 import PaymentModal from "../../components/student/PaymentModal";
 
@@ -112,6 +113,28 @@ function CourseCard({ course, onEnroll }) {
   const [wishlisted, setWishlisted] = useState(false);
   const priceLabel =
     course.price && course.price !== 0 ? `₹${course.price}` : "Free";
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}/courses/${course.id}`;
+
+    const shareData = {
+      title: course.title,
+      text: `🚀 Check out this course on QNAYDS LMS!\n\n${course.title}`,
+      url,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(url);
+        alert("Course link copied to clipboard!");
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   return (
     <div className="group relative bg-white rounded-2xl border border-slate-200 overflow-hidden hover:border-sky-300 hover:shadow-xl hover:shadow-sky-100 hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
       {/* Thumbnail */}
@@ -218,18 +241,14 @@ function CourseCard({ course, onEnroll }) {
         )}
 
         {/* Footer */}
-        <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
-          <div className="flex flex-col">
-            {course.duration && (
-              <span className="inline-flex items-center gap-1 text-xs text-slate-400">
-                <Clock className="w-3.5 h-3.5" />
-                {course.duration}
-              </span>
-            )}
-            <span className="text-base font-bold text-slate-900 mt-0.5">
-              {priceLabel}
-            </span>
-          </div>
+        <div className="flex  items-center gap-3 p-2">
+          <button
+            onClick={handleShare}
+            className="flex items-center justify-center h-10 w-10 rounded-lg border border-slate-200 hover:border-sky-300 hover:text-sky-600 transition"
+          >
+            <Share2 className="w-4 h-4" />
+          </button>
+
           {course.enrollmentStatus === "PENDING" ? (
             <div className="flex flex-col items-end">
               <span className="bg-amber-100 text-amber-700 px-4 py-2 rounded-lg text-sm font-medium">
