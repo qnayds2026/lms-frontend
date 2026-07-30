@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   ChevronLeft,
@@ -10,6 +10,8 @@ import {
   X,
   Pencil,
   Trash2,
+  GripVertical,
+  Layers,
 } from "lucide-react";
 import api from "../../api/axios";
 
@@ -168,6 +170,126 @@ function EditRecordingModal({ recording, onClose, onUpdated }) {
   );
 }
 
+// --- NEW: Add Module modal ---
+function AddModuleModal({ courseId, onClose, onCreated }) {
+  const [title, setTitle] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSaving(true);
+    try {
+      const res = await api.post("/modules", { title, courseId });
+      onCreated(res.data);
+      onClose();
+    } catch (err) {
+      setError(err?.response?.data?.error || err?.response?.data?.message || "Failed to add module.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/40 flex items-center justify-center z-50 px-4">
+      <div className="bg-white rounded-2xl w-full max-w-md p-6 relative">
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 text-slate-400 hover:text-slate-600"
+        >
+          <X className="w-5 h-5" />
+        </button>
+        <h3 className="text-lg font-semibold text-slate-900" style={display}>
+          Add Module
+        </h3>
+        {error && (
+          <div className="mt-3 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-600">
+            {error}
+          </div>
+        )}
+        <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+          <input
+            required
+            autoFocus
+            placeholder="Module title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+          />
+          <button
+            type="submit"
+            disabled={saving}
+            className="w-full bg-sky-600 hover:bg-sky-700 disabled:opacity-60 text-white py-2.5 rounded-lg font-medium text-sm transition"
+          >
+            {saving ? "Saving..." : "Add Module"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// --- NEW: Edit Module modal ---
+function EditModuleModal({ module, onClose, onUpdated }) {
+  const [title, setTitle] = useState(module.title || "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSaving(true);
+    try {
+      const res = await api.put(`/modules/${module.id}`, { title });
+      onUpdated(res.data);
+      onClose();
+    } catch (err) {
+      setError(err?.response?.data?.error || err?.response?.data?.message || "Failed to update module.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/40 flex items-center justify-center z-50 px-4">
+      <div className="bg-white rounded-2xl w-full max-w-md p-6 relative">
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 text-slate-400 hover:text-slate-600"
+        >
+          <X className="w-5 h-5" />
+        </button>
+        <h3 className="text-lg font-semibold text-slate-900" style={display}>
+          Edit Module
+        </h3>
+        {error && (
+          <div className="mt-3 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-600">
+            {error}
+          </div>
+        )}
+        <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+          <input
+            required
+            autoFocus
+            placeholder="Module title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+          />
+          <button
+            type="submit"
+            disabled={saving}
+            className="w-full bg-sky-600 hover:bg-sky-700 disabled:opacity-60 text-white py-2.5 rounded-lg font-medium text-sm transition"
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 const AdminManageRecordings = () => {
   const { courseId } = useParams();
   const [course, setCourse] = useState(null);
@@ -177,6 +299,17 @@ const AdminManageRecordings = () => {
   const [modalModuleId, setModalModuleId] = useState(null);
   const [editingRecording, setEditingRecording] = useState(null); // { moduleId, recording }
   const [deletingId, setDeletingId] = useState(null);
+
+  // NEW: module add/edit/delete state
+  const [addModuleOpen, setAddModuleOpen] = useState(false);
+  const [editingModule, setEditingModule] = useState(null);
+  const [deletingModuleId, setDeletingModuleId] = useState(null);
+
+  // NEW: drag-and-drop state
+  const dragModuleId = useRef(null);
+  const dragIndex = useRef(null);
+  const [dragOverIndex, setDragOverIndex] = useState({ moduleId: null, index: null });
+  const [reordering, setReordering] = useState(null); // moduleId currently saving
 
   const fetchData = async () => {
     setLoading(true);
@@ -274,6 +407,104 @@ const AdminManageRecordings = () => {
     }
   };
 
+  // NEW: module handlers
+  const handleModuleCreated = (newModule) => {
+    setModules((prev) => [
+      ...prev,
+      { id: newModule.id, title: newModule.title, recordings: [] },
+    ]);
+  };
+
+  const handleModuleUpdated = (updated) => {
+    setModules((prev) =>
+      prev.map((m) => (m.id === updated.id ? { ...m, title: updated.title } : m))
+    );
+  };
+
+  const handleDeleteModule = async (module) => {
+    const recordingCount = module.recordings.length;
+    const warning =
+      recordingCount > 0
+        ? `Delete "${module.title}"? This will also delete ${recordingCount} recording${
+            recordingCount === 1 ? "" : "s"
+          } inside it. This can't be undone.`
+        : `Delete "${module.title}"? This can't be undone.`;
+
+    if (!window.confirm(warning)) return;
+
+    setDeletingModuleId(module.id);
+    try {
+      await api.delete(`/modules/${module.id}`);
+      setModules((prev) => prev.filter((m) => m.id !== module.id));
+    } catch (err) {
+      alert(
+        err?.response?.data?.error ||
+          err?.response?.data?.message ||
+          "Failed to delete module."
+      );
+    } finally {
+      setDeletingModuleId(null);
+    }
+  };
+
+  // NEW: drag-and-drop reordering within a module
+  const persistOrder = async (moduleId, orderedRecordings) => {
+    setReordering(moduleId);
+    try {
+      // NOTE: adjust endpoint/payload to match your actual reorder API if different
+      await api.patch("/recordings/reorder", {
+        moduleId,
+        orderedIds: orderedRecordings.map((r) => r.id),
+      });
+    } catch (err) {
+      alert(err?.response?.data?.error || "Failed to save new order. Refresh and try again.");
+      fetchData(); // revert to server state on failure
+    } finally {
+      setReordering(null);
+    }
+  };
+
+  const handleDragStart = (moduleId, index) => {
+    dragModuleId.current = moduleId;
+    dragIndex.current = index;
+  };
+
+  const handleDragOver = (e, moduleId, index) => {
+    e.preventDefault();
+    if (dragModuleId.current !== moduleId) return; // no cross-module dragging
+    setDragOverIndex({ moduleId, index });
+  };
+
+  const handleDrop = (e, moduleId, dropIndex) => {
+    e.preventDefault();
+    const fromModuleId = dragModuleId.current;
+    const fromIndex = dragIndex.current;
+    setDragOverIndex({ moduleId: null, index: null });
+    dragModuleId.current = null;
+    dragIndex.current = null;
+
+    if (fromModuleId !== moduleId || fromIndex === null || fromIndex === dropIndex) {
+      return;
+    }
+
+    setModules((prev) =>
+      prev.map((m) => {
+        if (m.id !== moduleId) return m;
+        const updated = [...m.recordings];
+        const [moved] = updated.splice(fromIndex, 1);
+        updated.splice(dropIndex, 0, moved);
+        persistOrder(moduleId, updated);
+        return { ...m, recordings: updated };
+      })
+    );
+  };
+
+  const handleDragEnd = () => {
+    dragModuleId.current = null;
+    dragIndex.current = null;
+    setDragOverIndex({ moduleId: null, index: null });
+  };
+
   if (loading) {
     return (
       <div className="p-6 md:p-10 bg-slate-50 min-h-screen animate-pulse">
@@ -299,15 +530,28 @@ const AdminManageRecordings = () => {
         Back to Courses
       </Link>
 
-      <span
-        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-sky-200 bg-sky-50 text-sky-700 text-xs font-medium"
-        style={mono}
-      >
-        <Terminal className="w-3.5 h-3.5" /> manage_recordings
-      </span>
-      <h1 className="mt-3 text-2xl font-semibold text-slate-900" style={display}>
-        {course?.title}
-      </h1>
+      <div className="flex items-start justify-between flex-wrap gap-4">
+        <div>
+          <span
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-sky-200 bg-sky-50 text-sky-700 text-xs font-medium"
+            style={mono}
+          >
+            <Terminal className="w-3.5 h-3.5" /> manage_recordings
+          </span>
+          <h1 className="mt-3 text-2xl font-semibold text-slate-900" style={display}>
+            {course?.title}
+          </h1>
+        </div>
+
+        {/* NEW: Add Module button */}
+        <button
+          onClick={() => setAddModuleOpen(true)}
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition-colors"
+        >
+          <Layers className="h-4 w-4" />
+          Add Module
+        </button>
+      </div>
 
       {error && (
         <div className="mt-6 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">
@@ -319,7 +563,31 @@ const AdminManageRecordings = () => {
         {modules.map((module) => (
           <div key={module.id} className="bg-white rounded-2xl border border-slate-200">
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-              <h2 className="text-sm font-semibold text-slate-900">{module.title}</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-slate-900">{module.title}</h2>
+                {/* NEW: Edit module button */}
+                <button
+                  onClick={() => setEditingModule(module)}
+                  className="inline-flex items-center justify-center h-6 w-6 rounded-md text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-colors"
+                  title="Edit module"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+                {/* NEW: Delete module button */}
+                <button
+                  onClick={() => handleDeleteModule(module)}
+                  disabled={deletingModuleId === module.id}
+                  className="inline-flex items-center justify-center h-6 w-6 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                  title="Delete module"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+                {reordering === module.id && (
+                  <span className="text-xs text-slate-400" style={mono}>
+                    saving order...
+                  </span>
+                )}
+              </div>
               <button
                 onClick={() => setModalModuleId(module.id)}
                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-600 hover:text-sky-700"
@@ -329,8 +597,27 @@ const AdminManageRecordings = () => {
               </button>
             </div>
             <ul className="divide-y divide-slate-100">
-              {module.recordings.map((rec) => (
-                <li key={rec.id} className="flex items-center gap-3 px-5 py-3">
+              {module.recordings.map((rec, index) => (
+                <li
+                  key={rec.id}
+                  draggable
+                  onDragStart={() => handleDragStart(module.id, index)}
+                  onDragOver={(e) => handleDragOver(e, module.id, index)}
+                  onDrop={(e) => handleDrop(e, module.id, index)}
+                  onDragEnd={handleDragEnd}
+                  className={`flex items-center gap-3 px-5 py-3 transition-colors ${
+                    dragOverIndex.moduleId === module.id && dragOverIndex.index === index
+                      ? "bg-sky-50"
+                      : ""
+                  }`}
+                >
+                  {/* NEW: drag handle */}
+                  <span
+                    className="shrink-0 cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500"
+                    title="Drag to reorder"
+                  >
+                    <GripVertical className="h-4 w-4" />
+                  </span>
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-50">
                     <PlaySquare className="h-4 w-4 text-sky-600" />
                   </span>
@@ -409,6 +696,22 @@ const AdminManageRecordings = () => {
           recording={editingRecording.recording}
           onClose={() => setEditingRecording(null)}
           onUpdated={(updated) => handleUpdated(editingRecording.moduleId, updated)}
+        />
+      )}
+
+      {addModuleOpen && (
+        <AddModuleModal
+          courseId={courseId}
+          onClose={() => setAddModuleOpen(false)}
+          onCreated={handleModuleCreated}
+        />
+      )}
+
+      {editingModule && (
+        <EditModuleModal
+          module={editingModule}
+          onClose={() => setEditingModule(null)}
+          onUpdated={handleModuleUpdated}
         />
       )}
     </div>
