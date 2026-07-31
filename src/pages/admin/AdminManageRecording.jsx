@@ -170,7 +170,63 @@ function EditRecordingModal({ recording, onClose, onUpdated }) {
   );
 }
 
-// --- NEW: Add Module modal ---
+function VideoPreviewModal({ recording, onClose }) {
+  // Prefer the backend-computed embedUrl; fall back to building one from
+  // videoId (YouTube) or just linking out if neither is available.
+  const embedSrc =
+    recording.embedUrl ||
+    (recording.videoId ? `https://www.youtube.com/embed/${recording.videoId}` : null);
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 px-4">
+      <div className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden relative">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+          <h3 className="text-sm font-semibold text-slate-900 truncate pr-4" style={display}>
+            {recording.title}
+          </h3>
+          <button
+            onClick={onClose}
+            className="shrink-0 text-slate-400 hover:text-slate-600"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="aspect-video bg-black">
+          {embedSrc ? (
+            <iframe
+              src={embedSrc}
+              title={recording.title}
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-slate-400 text-sm px-6 text-center">
+              <p>Couldn&apos;t build an embeddable preview for this link.</p>
+              {recording.videoUrl && (
+                <a
+                  href={recording.videoUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sky-400 hover:text-sky-300 underline"
+                >
+                  Open the original link instead
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+        {recording.description && (
+          <p className="px-5 py-3 text-sm text-slate-500 border-t border-slate-100">
+            {recording.description}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
 function AddModuleModal({ courseId, onClose, onCreated }) {
   const [title, setTitle] = useState("");
   const [saving, setSaving] = useState(false);
@@ -298,6 +354,7 @@ const AdminManageRecordings = () => {
   const [error, setError] = useState("");
   const [modalModuleId, setModalModuleId] = useState(null);
   const [editingRecording, setEditingRecording] = useState(null); // { moduleId, recording }
+  const [previewRecording, setPreviewRecording] = useState(null); // recording being previewed
   const [deletingId, setDeletingId] = useState(null);
 
   // NEW: module add/edit/delete state
@@ -698,15 +755,25 @@ const AdminManageRecordings = () => {
                   >
                     <GripVertical className="h-4 w-4" />
                   </span>
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-50">
+                  <button
+                    onClick={() => setPreviewRecording(rec)}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-50 hover:bg-sky-100 transition-colors"
+                    title="Preview video"
+                  >
                     <PlaySquare className="h-4 w-4 text-sky-600" />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900 truncate">{rec.title}</p>
+                  </button>
+                  <button
+                    onClick={() => setPreviewRecording(rec)}
+                    className="flex-1 min-w-0 text-left"
+                    title="Preview video"
+                  >
+                    <p className="text-sm font-medium text-slate-900 truncate hover:text-sky-600 transition-colors">
+                      {rec.title}
+                    </p>
                     {rec.duration && (
                       <p className="text-xs text-slate-400">{rec.duration}</p>
                     )}
-                  </div>
+                  </button>
                   <button
                     onClick={() => togglePublish(rec, module.id)}
                     className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
@@ -776,6 +843,13 @@ const AdminManageRecordings = () => {
           recording={editingRecording.recording}
           onClose={() => setEditingRecording(null)}
           onUpdated={(updated) => handleUpdated(editingRecording.moduleId, updated)}
+        />
+      )}
+
+      {previewRecording && (
+        <VideoPreviewModal
+          recording={previewRecording}
+          onClose={() => setPreviewRecording(null)}
         />
       )}
 
