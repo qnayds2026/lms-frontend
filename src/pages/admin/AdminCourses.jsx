@@ -44,6 +44,8 @@ function CreateCourseModal({ onClose, onCreated }) {
     thumbnail: "",
     price: 0,
     instructorId: "",
+    communityLink: "",
+    instructorPhone: "",
   });
 
   const [instructors, setInstructors] = useState([]);
@@ -75,6 +77,8 @@ function CreateCourseModal({ onClose, onCreated }) {
         thumbnail: form.thumbnail || undefined,
         price: Number(form.price) || 0,
         instructorId: Number(form.instructorId),
+        communityLink: form.communityLink || undefined,
+        instructorPhone: form.instructorPhone || undefined,
       });
 
       onCreated(res.data);
@@ -178,6 +182,31 @@ function CreateCourseModal({ onClose, onCreated }) {
               </option>
             ))}
           </select>
+          <input
+            type="text"
+            placeholder="Instructor Contact Number"
+            value={form.instructorPhone}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                instructorPhone: e.target.value,
+              })
+            }
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+          />
+
+          <input
+            type="url"
+            placeholder="WhatsApp Community Link"
+            value={form.communityLink}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                communityLink: e.target.value,
+              })
+            }
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+          />
 
           <button
             type="submit"
@@ -199,6 +228,8 @@ function EditCourseModal({ course, onClose, onSaved }) {
     thumbnail: "",
     price: 0,
     instructorId: "",
+    communityLink: "",
+    instructorPhone: "",
   });
 
   const [instructors, setInstructors] = useState([]);
@@ -213,6 +244,8 @@ function EditCourseModal({ course, onClose, onSaved }) {
         thumbnail: course.thumbnail || "",
         price: course.price || 0,
         instructorId: course.instructorId ?? course.instructor?.id ?? "",
+        communityLink: course.communityLink || "",
+        instructorPhone: course.instructorPhone || "",
       });
     }
   }, [course]);
@@ -244,6 +277,8 @@ function EditCourseModal({ course, onClose, onSaved }) {
         thumbnail: form.thumbnail || undefined,
         price: Number(form.price) || 0,
         instructorId: Number(form.instructorId),
+        communityLink: form.communityLink || undefined,
+        instructorPhone: form.instructorPhone || undefined,
       });
 
       onSaved(res.data);
@@ -347,6 +382,31 @@ function EditCourseModal({ course, onClose, onSaved }) {
               </option>
             ))}
           </select>
+          <input
+            type="text"
+            placeholder="Instructor Contact Number"
+            value={form.instructorPhone}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                instructorPhone: e.target.value,
+              })
+            }
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+          />
+
+          <input
+            type="url"
+            placeholder="WhatsApp Community Link"
+            value={form.communityLink}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                communityLink: e.target.value,
+              })
+            }
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+          />
 
           <button
             type="submit"

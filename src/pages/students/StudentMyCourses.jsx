@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { PlayCircle, CheckCircle2, AlertCircle, Terminal, ArrowRight } from "lucide-react";
+import {
+  PlayCircle,
+  CheckCircle2,
+  AlertCircle,
+  Terminal,
+  ArrowRight,
+} from "lucide-react";
 import api from "../../api/axios";
 
 const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');`;
@@ -16,8 +22,10 @@ const FILTERS = [
 ];
 
 function StatusIcon({ status }) {
-  if (status === "COMPLETED") return <CheckCircle2 className="w-5 h-5 text-sky-600" />;
-  if (status === "PENDING") return <AlertCircle className="w-5 h-5 text-amber-500" />;
+  if (status === "COMPLETED")
+    return <CheckCircle2 className="w-5 h-5 text-sky-600" />;
+  if (status === "PENDING")
+    return <AlertCircle className="w-5 h-5 text-amber-500" />;
   return <PlayCircle className="w-5 h-5 text-sky-600" />;
 }
 
@@ -42,7 +50,8 @@ const StudentMyCourses = () => {
         setEnrollments(res.data?.data || []);
       } catch (err) {
         setError(
-          err?.response?.data?.message || "Failed to load your courses. Please try again."
+          err?.response?.data?.message ||
+            "Failed to load your courses. Please try again.",
         );
       } finally {
         setLoading(false);
@@ -70,7 +79,10 @@ const StudentMyCourses = () => {
       >
         <Terminal className="w-3.5 h-3.5" /> my_courses
       </span>
-      <h1 className="mt-3 text-3xl font-semibold text-slate-900" style={display}>
+      <h1
+        className="mt-3 text-3xl font-semibold text-slate-900"
+        style={display}
+      >
         My Courses
       </h1>
       <p className="text-slate-500 mt-1.5 text-sm">
@@ -101,8 +113,7 @@ const StudentMyCourses = () => {
       )}
 
       <div className="mt-6 space-y-4">
-        {loading &&
-          [0, 1, 2].map((i) => <CourseRowSkeleton key={i} />)}
+        {loading && [0, 1, 2].map((i) => <CourseRowSkeleton key={i} />)}
 
         {!loading &&
           !error &&
@@ -133,15 +144,40 @@ const StudentMyCourses = () => {
                 </div>
 
                 {status === "ACTIVE" || status === "COMPLETED" ? (
-                  <Link
-                    to={`/student/recordings/${courseId}`}
-                    className="shrink-0 inline-flex items-center gap-1 text-sm font-semibold text-sky-600 hover:gap-2 transition-all"
-                  >
-                    {status === "COMPLETED" ? "Review" : "Continue"}
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Link
+                      to={`/student/recordings/${courseId}`}
+                      className="inline-flex items-center gap-1 rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-700"
+                    >
+                      {status === "COMPLETED" ? "Review" : "Continue"}
+                    </Link>
+
+                    {course?.communityLink && (
+                      <a
+                        href={course.communityLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center rounded-lg border border-green-600 px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50"
+                      >
+                        Join Group
+                      </a>
+                    )}
+
+                    {course?.instructorPhone && (
+                      <a
+                        href={`https://wa.me/${course.instructorPhone}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-50"
+                      >
+                        Contact Instructor
+                      </a>
+                    )}
+                  </div>
                 ) : (
-                  <span className="shrink-0 text-xs text-slate-400">Awaiting access</span>
+                  <span className="text-xs text-slate-400">
+                    Awaiting access
+                  </span>
                 )}
               </div>
             );
