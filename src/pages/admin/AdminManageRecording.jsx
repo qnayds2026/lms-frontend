@@ -305,11 +305,16 @@ const AdminManageRecordings = () => {
   const [editingModule, setEditingModule] = useState(null);
   const [deletingModuleId, setDeletingModuleId] = useState(null);
 
-  // NEW: drag-and-drop state
+  // NEW: drag-and-drop state (recordings, within a module)
   const dragModuleId = useRef(null);
   const dragIndex = useRef(null);
   const [dragOverIndex, setDragOverIndex] = useState({ moduleId: null, index: null });
   const [reordering, setReordering] = useState(null); // moduleId currently saving
+
+  // NEW: drag-and-drop state (modules themselves, within the course)
+  const dragModuleIndex = useRef(null);
+  const [dragOverModuleIndex, setDragOverModuleIndex] = useState(null);
+  const [reorderingModules, setReorderingModules] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -505,6 +510,57 @@ const AdminManageRecordings = () => {
     setDragOverIndex({ moduleId: null, index: null });
   };
 
+  // NEW: drag-and-drop reordering of modules themselves
+  const persistModuleOrder = async (orderedModules) => {
+    setReorderingModules(true);
+    try {
+      await api.patch("/modules/reorder", {
+        courseId,
+        orderedIds: orderedModules.map((m) => m.id),
+      });
+    } catch (err) {
+      alert(
+        err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          "Failed to save new module order. Refresh and try again."
+      );
+      fetchData(); // revert to server state on failure
+    } finally {
+      setReorderingModules(false);
+    }
+  };
+
+  const handleModuleDragStart = (index) => {
+    dragModuleIndex.current = index;
+  };
+
+  const handleModuleDragOver = (e, index) => {
+    e.preventDefault();
+    setDragOverModuleIndex(index);
+  };
+
+  const handleModuleDrop = (e, dropIndex) => {
+    e.preventDefault();
+    const fromIndex = dragModuleIndex.current;
+    dragModuleIndex.current = null;
+    setDragOverModuleIndex(null);
+
+    if (fromIndex === null || fromIndex === dropIndex) return;
+
+    setModules((prev) => {
+      const updated = [...prev];
+      const [moved] = updated.splice(fromIndex, 1);
+      updated.splice(dropIndex, 0, moved);
+      persistModuleOrder(updated);
+      return updated;
+    });
+  };
+
+  const handleModuleDragEnd = () => {
+    dragModuleIndex.current = null;
+    setDragOverModuleIndex(null);
+  };
+
   if (loading) {
     return (
       <div className="p-6 md:p-10 bg-slate-50 min-h-screen animate-pulse">
@@ -544,13 +600,20 @@ const AdminManageRecordings = () => {
         </div>
 
         {/* NEW: Add Module button */}
-        <button
-          onClick={() => setAddModuleOpen(true)}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition-colors"
-        >
-          <Layers className="h-4 w-4" />
-          Add Module
-        </button>
+        <div className="flex items-center gap-3">
+          {reorderingModules && (
+            <span className="text-xs text-slate-400" style={mono}>
+              saving module order...
+            </span>
+          )}
+          <button
+            onClick={() => setAddModuleOpen(true)}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition-colors"
+          >
+            <Layers className="h-4 w-4" />
+            Add Module
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -560,10 +623,27 @@ const AdminManageRecordings = () => {
       )}
 
       <div className="mt-8 space-y-6">
-        {modules.map((module) => (
-          <div key={module.id} className="bg-white rounded-2xl border border-slate-200">
+        {modules.map((module, moduleIndex) => (
+          <div
+            key={module.id}
+            draggable
+            onDragStart={() => handleModuleDragStart(moduleIndex)}
+            onDragOver={(e) => handleModuleDragOver(e, moduleIndex)}
+            onDrop={(e) => handleModuleDrop(e, moduleIndex)}
+            onDragEnd={handleModuleDragEnd}
+            className={`bg-white rounded-2xl border border-slate-200 transition-colors ${
+              dragOverModuleIndex === moduleIndex ? "border-sky-300 bg-sky-50/40" : ""
+            }`}
+          >
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
               <div className="flex items-center gap-2">
+                {/* NEW: module drag handle */}
+                <span
+                  className="shrink-0 cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500"
+                  title="Drag to reorder module"
+                >
+                  <GripVertical className="h-4 w-4" />
+                </span>
                 <h2 className="text-sm font-semibold text-slate-900">{module.title}</h2>
                 {/* NEW: Edit module button */}
                 <button
