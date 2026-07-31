@@ -30,7 +30,12 @@ function AddRecordingModal({ moduleId, onClose, onCreated }) {
     setError("");
     setSaving(true);
     try {
-      const res = await api.post("/recordings", { ...form, moduleId });
+      const res = await api.post("/recordings", {
+        title: form.title,
+        description: form.description,
+        videoUrl: form.youtubeUrl,
+        moduleId,
+      });
       onCreated(res.data);
       onClose();
     } catch (err) {
@@ -74,11 +79,14 @@ function AddRecordingModal({ moduleId, onClose, onCreated }) {
           />
           <input
             required
-            placeholder="YouTube URL"
+            placeholder="YouTube or Google Drive URL"
             value={form.youtubeUrl}
             onChange={(e) => setForm({ ...form, youtubeUrl: e.target.value })}
             className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
           />
+          <p className="text-xs text-slate-400 -mt-1">
+            Paste a YouTube link, or a Google Drive share link (make sure sharing is set to "Anyone with the link").
+          </p>
           <button
             type="submit"
             disabled={saving}
@@ -108,7 +116,11 @@ function EditRecordingModal({ recording, onClose, onUpdated }) {
     setError("");
     setSaving(true);
     try {
-      const res = await api.patch(`/recordings/${recording.id}`, form);
+      const res = await api.patch(`/recordings/${recording.id}`, {
+        title: form.title,
+        description: form.description,
+        videoUrl: form.youtubeUrl,
+      });
       onUpdated(res.data);
       onClose();
     } catch (err) {
@@ -152,11 +164,14 @@ function EditRecordingModal({ recording, onClose, onUpdated }) {
           />
           <input
             required
-            placeholder="YouTube URL"
+            placeholder="YouTube or Google Drive URL"
             value={form.youtubeUrl}
             onChange={(e) => setForm({ ...form, youtubeUrl: e.target.value })}
             className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
           />
+          <p className="text-xs text-slate-400 -mt-1">
+            Paste a YouTube link, or a Google Drive share link (make sure sharing is set to "Anyone with the link").
+          </p>
           <button
             type="submit"
             disabled={saving}
