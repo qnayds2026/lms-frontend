@@ -110,7 +110,7 @@ const StudentRecordings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6 md:p-10">
+    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 md:p-10">
       <style>{FONT_IMPORT}</style>
 
       <Link
@@ -124,22 +124,24 @@ const StudentRecordings = () => {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
         {/* Video area — YouTube embed */}
         <div>
-          <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-slate-900 shadow-lg shadow-slate-200">
-            {activeRecording?.embedUrl ? (
-              <iframe
-                key={activeRecording.id}
-                className="h-full w-full"
-                src={activeRecording.embedUrl}
-                title={activeRecording.title}
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-white/40 text-sm px-6 text-center">
-                No video available for this lesson yet.
-              </div>
-            )}
+          <div className="relative w-full overflow-hidden rounded-xl sm:rounded-2xl bg-slate-900 shadow-lg shadow-slate-200">
+            <div className="aspect-video w-full">
+              {activeRecording?.embedUrl ? (
+                <iframe
+                  key={activeRecording.id}
+                  className="absolute inset-0 h-full w-full"
+                  src={activeRecording.embedUrl}
+                  title={activeRecording.title}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-white/40 text-sm px-6 text-center">
+                  No video available for this lesson yet.
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="mt-5">
