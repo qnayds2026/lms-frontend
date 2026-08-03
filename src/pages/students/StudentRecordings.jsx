@@ -126,7 +126,18 @@ const StudentRecordings = () => {
         {/* Video area — YouTube / Drive embed */}
         <div>
           <div className="relative w-full overflow-hidden rounded-xl sm:rounded-2xl bg-slate-900 shadow-lg shadow-slate-200">
-            <div className="aspect-video w-full">
+            <div
+              className={
+                activeRecording?.provider === "GOOGLE_DRIVE"
+                  ? "w-full"
+                  : "aspect-video w-full"
+              }
+              style={
+                activeRecording?.provider === "GOOGLE_DRIVE"
+                  ? { paddingBottom: "68%" }
+                  : undefined
+              }
+            >
               {activeRecording?.embedUrl ? (
                 <iframe
                   key={activeRecording.id}
