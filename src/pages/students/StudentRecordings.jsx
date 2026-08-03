@@ -8,6 +8,7 @@ import {
   Circle,
   Paperclip,
   Download,
+  Layers,
 } from "lucide-react";
 import api from "../../api/axios";
 
@@ -122,7 +123,7 @@ const StudentRecordings = () => {
       </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
-        {/* Video area — YouTube embed */}
+        {/* Video area — YouTube / Drive embed */}
         <div>
           <div className="relative w-full overflow-hidden rounded-xl sm:rounded-2xl bg-slate-900 shadow-lg shadow-slate-200">
             <div className="aspect-video w-full">
@@ -133,8 +134,10 @@ const StudentRecordings = () => {
                   src={activeRecording.embedUrl}
                   title={activeRecording.title}
                   frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                   allowFullScreen
+                  webkitallowfullscreen="true"
+                  mozallowfullscreen="true"
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-white/40 text-sm px-6 text-center">
@@ -187,9 +190,10 @@ const StudentRecordings = () => {
           <div className="max-h-[70vh] overflow-y-auto">
             {modules.map((module) => (
               <div key={module.id}>
-                <div className="px-4 py-2 bg-slate-50 border-b border-slate-100">
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-sky-50/70 border-y border-sky-100 border-l-[3px] border-l-sky-500">
+                  <Layers className="h-3.5 w-3.5 text-sky-500 shrink-0" />
                   <p
-                    className="text-xs font-semibold text-slate-500 uppercase"
+                    className="text-xs font-semibold text-sky-700 uppercase tracking-wide"
                     style={mono}
                   >
                     {module.title}
