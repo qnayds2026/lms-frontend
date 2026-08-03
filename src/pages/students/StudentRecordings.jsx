@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import {
   CheckCircle2,
   ChevronLeft,
+  ChevronDown,
   Lock,
   Terminal,
   Circle,
@@ -22,6 +23,7 @@ const StudentRecordings = () => {
   const [course, setCourse] = useState(null);
   const [modules, setModules] = useState([]);
   const [activeRecordingId, setActiveRecordingId] = useState(null);
+  const [expandedModuleIds, setExpandedModuleIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -60,11 +62,16 @@ const StudentRecordings = () => {
 
         setModules(moduleData);
 
-        const firstRecording = moduleData.find((m) => m.recordings.length > 0)
-          ?.recordings[0];
+        const firstModuleWithRecording = moduleData.find(
+          (m) => m.recordings.length > 0,
+        );
+        const firstRecording = firstModuleWithRecording?.recordings[0];
 
         if (firstRecording) {
           setActiveRecordingId(firstRecording.id);
+        }
+        if (firstModuleWithRecording) {
+          setExpandedModuleIds(new Set([firstModuleWithRecording.id]));
         }
       } catch (err) {
         setError(
@@ -87,6 +94,18 @@ const StudentRecordings = () => {
   const activeIndex = allRecordings.findIndex(
     (r) => r.id === activeRecordingId,
   );
+
+  const toggleModule = (moduleId) => {
+    setExpandedModuleIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(moduleId)) {
+        next.delete(moduleId);
+      } else {
+        next.add(moduleId);
+      }
+      return next;
+    });
+  };
 
   if (loading) {
     return (
@@ -199,95 +218,110 @@ const StudentRecordings = () => {
           </div>
 
           <div className="max-h-[70vh] overflow-y-auto">
-            {modules.map((module) => (
-              <div key={module.id}>
-                <div className="flex items-center gap-2 px-4 py-2.5 bg-sky-50/70 border-y border-sky-100 border-l-[3px] border-l-sky-500">
-                  <Layers className="h-3.5 w-3.5 text-sky-500 shrink-0" />
-                  <p
-                    className="text-xs font-semibold text-sky-700 uppercase tracking-wide"
-                    style={mono}
+            {modules.map((module) => {
+              const isExpanded = expandedModuleIds.has(module.id);
+              return (
+                <div key={module.id}>
+                  <button
+                    onClick={() => toggleModule(module.id)}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 bg-sky-50/70 border-y border-sky-100 border-l-[3px] border-l-sky-500 text-left"
                   >
-                    {module.title}
-                  </p>
-                </div>
-                <ul className="divide-y divide-slate-100">
-                  {module.recordings.length === 0 && (
-                    <li className="px-4 py-3 text-xs text-slate-400 flex items-center gap-2">
-                      <Lock className="h-3.5 w-3.5" />
-                      No lessons published yet
-                    </li>
-                  )}
-                  {module.recordings.map((rec) => {
-                    const isActive = rec.id === activeRecordingId;
-                    return (
-                      <li key={rec.id}>
-                        <button
-                          onClick={() => setActiveRecordingId(rec.id)}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
-                            isActive ? "bg-sky-50" : "hover:bg-sky-50"
-                          }`}
-                        >
-                          {isActive ? (
-                            <CheckCircle2 className="h-5 w-5 text-sky-600 shrink-0" />
-                          ) : (
-                            <Circle className="h-5 w-5 text-slate-300 shrink-0" />
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <p
-                              className={`text-sm truncate ${
-                                isActive
-                                  ? "font-semibold text-slate-900"
-                                  : "text-slate-700"
-                              }`}
+                    <Layers className="h-3.5 w-3.5 text-sky-500 shrink-0" />
+                    <p
+                      className="flex-1 min-w-0 text-xs font-semibold text-sky-700 uppercase tracking-wide"
+                      style={mono}
+                    >
+                      {module.title}
+                    </p>
+                    <ChevronDown
+                      className={`h-4 w-4 text-sky-500 shrink-0 transition-transform duration-200 ${
+                        isExpanded ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+                  {isExpanded && (
+                    <>
+                      <ul className="divide-y divide-slate-100">
+                        {module.recordings.length === 0 && (
+                          <li className="px-4 py-3 text-xs text-slate-400 flex items-center gap-2">
+                            <Lock className="h-3.5 w-3.5" />
+                            No lessons published yet
+                          </li>
+                        )}
+                        {module.recordings.map((rec) => {
+                          const isActive = rec.id === activeRecordingId;
+                          return (
+                            <li key={rec.id}>
+                              <button
+                                onClick={() => setActiveRecordingId(rec.id)}
+                                className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
+                                  isActive ? "bg-sky-50" : "hover:bg-sky-50"
+                                }`}
+                              >
+                                {isActive ? (
+                                  <CheckCircle2 className="h-5 w-5 text-sky-600 shrink-0" />
+                                ) : (
+                                  <Circle className="h-5 w-5 text-slate-300 shrink-0" />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <p
+                                    className={`text-sm truncate ${
+                                      isActive
+                                        ? "font-semibold text-slate-900"
+                                        : "text-slate-700"
+                                    }`}
+                                  >
+                                    {rec.title}
+                                  </p>
+                                  {rec.duration && (
+                                    <p className="text-xs text-slate-400">
+                                      {rec.duration}
+                                    </p>
+                                  )}
+                                </div>
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                      {module.attachments?.length > 0 && (
+                        <div className="border-t border-slate-100 bg-slate-50">
+                          <div className="px-4 py-2 flex items-center gap-2">
+                            <Paperclip className="w-4 h-4 text-purple-600" />
+                            <span
+                              className="text-xs font-semibold uppercase text-slate-500"
+                              style={mono}
                             >
-                              {rec.title}
-                            </p>
-                            {rec.duration && (
-                              <p className="text-xs text-slate-400">
-                                {rec.duration}
-                              </p>
-                            )}
-                          </div>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-                {module.attachments?.length > 0 && (
-                  <div className="border-t border-slate-100 bg-slate-50">
-                    <div className="px-4 py-2 flex items-center gap-2">
-                      <Paperclip className="w-4 h-4 text-purple-600" />
-                      <span
-                        className="text-xs font-semibold uppercase text-slate-500"
-                        style={mono}
-                      >
-                        Attachments
-                      </span>
-                    </div>
-
-                    <div className="pb-2">
-                      {module.attachments.map((attachment) => (
-                        <a
-                          key={attachment.id}
-                          href={attachment.fileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          download
-                          className="flex items-center justify-between px-4 py-3 hover:bg-purple-50 transition group"
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-purple-600 font-medium hidden sm:block">
-                              Download
+                              Attachments
                             </span>
-                            <Download className="w-4 h-4 text-purple-600 group-hover:scale-110 transition-transform" />
                           </div>
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
+
+                          <div className="pb-2">
+                            {module.attachments.map((attachment) => (
+                              <a
+                                key={attachment.id}
+                                href={attachment.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                download
+                                className="flex items-center justify-between px-4 py-3 hover:bg-purple-50 transition group"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-purple-600 font-medium hidden sm:block">
+                                    Download
+                                  </span>
+                                  <Download className="w-4 h-4 text-purple-600 group-hover:scale-110 transition-transform" />
+                                </div>
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              );
+            })}
 
             {modules.length === 0 && (
               <p className="text-sm text-slate-400 text-center py-8">
