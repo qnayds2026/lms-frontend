@@ -707,20 +707,26 @@ const AdminManageRecordings = () => {
               dragOverModuleIndex === moduleIndex ? "border-sky-300 bg-sky-50/40" : ""
             }`}
           >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+            <div className="flex items-center justify-between gap-3 px-5 py-4 bg-sky-50/70 border-b border-sky-100 border-l-[3px] border-l-sky-500 rounded-t-2xl flex-wrap">
               <div className="flex items-center gap-2">
                 {/* NEW: module drag handle */}
                 <span
-                  className="shrink-0 cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500"
+                  className="shrink-0 cursor-grab active:cursor-grabbing text-sky-300 hover:text-sky-500"
                   title="Drag to reorder module"
                 >
                   <GripVertical className="h-4 w-4" />
                 </span>
-                <h2 className="text-sm font-semibold text-slate-900">{module.title}</h2>
+                <Layers className="h-3.5 w-3.5 text-sky-500 shrink-0" />
+                <h2
+                  className="text-xs font-semibold text-sky-700 uppercase tracking-wide"
+                  style={mono}
+                >
+                  {module.title}
+                </h2>
                 {/* NEW: Edit module button */}
                 <button
                   onClick={() => setEditingModule(module)}
-                  className="inline-flex items-center justify-center h-6 w-6 rounded-md text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-colors"
+                  className="inline-flex items-center justify-center h-6 w-6 rounded-md text-sky-400 hover:text-sky-700 hover:bg-sky-100 transition-colors"
                   title="Edit module"
                 >
                   <Pencil className="h-3.5 w-3.5" />
@@ -729,13 +735,13 @@ const AdminManageRecordings = () => {
                 <button
                   onClick={() => handleDeleteModule(module)}
                   disabled={deletingModuleId === module.id}
-                  className="inline-flex items-center justify-center h-6 w-6 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                  className="inline-flex items-center justify-center h-6 w-6 rounded-md text-sky-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
                   title="Delete module"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
                 {reordering === module.id && (
-                  <span className="text-xs text-slate-400" style={mono}>
+                  <span className="text-xs text-sky-400" style={mono}>
                     saving order...
                   </span>
                 )}
