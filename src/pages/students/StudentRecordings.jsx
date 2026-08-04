@@ -174,6 +174,16 @@ const StudentRecordings = () => {
                   No video available for this lesson yet.
                 </div>
               )}
+              {/* Blocks Google Drive's built-in "open in Drive / download" icon
+                  in the top-right of its preview UI — we can't remove it from
+                  inside the cross-origin iframe, so we intercept clicks here. */}
+              {activeRecording?.provider === "GOOGLE_DRIVE" &&
+                activeRecording?.embedUrl && (
+                  <div
+                    className="absolute top-0 right-0 h-14 w-16 z-10"
+                    title="Opening in Drive is disabled"
+                  />
+                )}
             </div>
           </div>
 
