@@ -57,7 +57,7 @@ const COLOR_MAP = {
 };
 
 const ACTIONS = [
-  { label: "Browse Courses", icon: Compass, primary: true },
+  // { label: "Browse Courses", icon: Compass, primary: true },
   {
     label: "My Courses",
     icon: GraduationCap,
@@ -109,12 +109,170 @@ function DashboardSkeleton() {
     </div>
   );
 }
-function CourseCard({ course, onEnroll }) {
+
+// --- NEW: course details modal, opened by clicking a card ---
+function CourseDetailsModal({ courseId, onClose, onEnroll }) {
+  const [course, setCourse] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    api
+      .get(`/courses/${courseId}`)
+      .then((res) => {
+        if (!cancelled) setCourse(res.data);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setError(
+            err.response?.status === 404
+              ? "Course not found"
+              : err.message || "Failed to load course"
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [courseId]);
+
+  return (
+    <div
+      className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 px-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto relative"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 backdrop-blur text-slate-500 hover:text-slate-700 hover:bg-white transition shadow-sm"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        {loading && (
+          <div className="p-14 flex items-center justify-center">
+            <p className="text-slate-400 text-sm">Loading course...</p>
+          </div>
+        )}
+
+        {!loading && error && (
+          <div className="p-14 flex flex-col items-center justify-center gap-3">
+            <p className="text-red-500 text-sm">{error}</p>
+          </div>
+        )}
+
+        {!loading && !error && course && (
+          <div className="p-6 sm:p-8">
+            {course.thumbnail && (
+              <div className="aspect-video w-full overflow-hidden rounded-xl bg-slate-100 mb-6">
+                <img
+                  src={course.thumbnail}
+                  alt={course.title}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            )}
+
+            {course.instructor?.name && (
+              <p className="text-sm font-semibold text-sky-600 mb-1.5">
+                {course.instructor.name}
+              </p>
+            )}
+
+            <h2
+              className="text-2xl font-semibold text-slate-900"
+              style={display}
+            >
+              {course.title}
+            </h2>
+
+            {course.description && (
+              <p className="mt-3 text-sm text-slate-600 leading-relaxed">
+                {course.description}
+              </p>
+            )}
+
+            {typeof course.price === "number" && (
+              <p className="mt-5 text-xl font-semibold text-slate-900">
+                {course.price === 0 ? "Free" : `₹${course.price}`}
+              </p>
+            )}
+
+            {course.modules?.length > 0 && (
+              <div className="mt-6">
+                <h3
+                  className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3"
+                  style={mono}
+                >
+                  Course Content
+                </h3>
+                <div className="space-y-2">
+                  {course.modules.map((mod) => (
+                    <div
+                      key={mod.id}
+                      className="rounded-lg border border-slate-200 px-4 py-3"
+                    >
+                      <p className="text-sm font-medium text-slate-800">
+                        {mod.title}
+                      </p>
+                      {mod.recordings?.length > 0 && (
+                        <p className="text-xs text-slate-400 mt-1">
+                          {mod.recordings.length} lesson
+                          {mod.recordings.length === 1 ? "" : "s"}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="mt-8">
+              {course.enrollmentStatus === "PENDING" ? (
+                <span className="inline-block bg-amber-100 text-amber-700 px-5 py-3 rounded-lg text-sm font-medium">
+                  ⏳ Waiting for Approval
+                </span>
+              ) : course.enrollmentStatus === "ACTIVE" ? (
+                <span className="inline-block bg-green-100 text-green-700 px-5 py-3 rounded-lg text-sm font-medium">
+                  ✓ Continue Learning
+                </span>
+              ) : (
+                <button
+                  onClick={() => {
+                    onEnroll(course);
+                    onClose();
+                  }}
+                  className="bg-sky-600 hover:bg-sky-700 text-white px-6 py-3 rounded-lg text-sm font-semibold transition-colors"
+                >
+                  Enroll Now
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CourseCard({ course, onEnroll, onOpenDetails }) {
   const [wishlisted, setWishlisted] = useState(false);
   const priceLabel =
     course.price && course.price !== 0 ? `₹${course.price}` : "Free";
 
-  const handleShare = async () => {
+  const handleShare = async (e) => {
+    e.stopPropagation();
     const url = `${window.location.origin}/courses/${course.id}`;
 
     const shareData = {
@@ -136,7 +294,10 @@ function CourseCard({ course, onEnroll }) {
   };
 
   return (
-    <div className="group relative bg-white rounded-2xl border border-slate-200 overflow-hidden hover:border-sky-300 hover:shadow-xl hover:shadow-sky-100 hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
+    <div
+      onClick={() => onOpenDetails(course)}
+      className="group relative bg-white rounded-2xl border border-slate-200 overflow-hidden hover:border-sky-300 hover:shadow-xl hover:shadow-sky-100 hover:-translate-y-1 transition-all duration-300 flex flex-col h-full cursor-pointer"
+    >
       {/* Thumbnail */}
       <div className="relative h-36 sm:h-40 bg-linear-to-br from-sky-50 to-slate-50 border-b border-slate-100 overflow-hidden">
         {course.thumbnail ? (
@@ -260,12 +421,18 @@ function CourseCard({ course, onEnroll }) {
               </p>
             </div>
           ) : course.enrollmentStatus === "ACTIVE" ? (
-            <button className="bg-green-100 text-green-700 px-4 py-2 rounded-lg text-sm font-medium">
+            <button
+              onClick={(e) => e.stopPropagation()}
+              className="bg-green-100 text-green-700 px-4 py-2 rounded-lg text-sm font-medium"
+            >
               ✓ Continue Learning
             </button>
           ) : (
             <button
-              onClick={() => onEnroll(course)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onEnroll(course);
+              }}
               className="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
             >
               Enroll Now
@@ -285,6 +452,7 @@ const StudentDashboard = () => {
   const [coursesLoading, setCoursesLoading] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [paymentOpen, setPaymentOpen] = useState(false);
+  const [detailsCourseId, setDetailsCourseId] = useState(null);
 
   const fetchDashboard = async () => {
     try {
@@ -382,6 +550,11 @@ const StudentDashboard = () => {
     setSelectedCourse(course);
     setPaymentOpen(true);
   };
+
+  const handleOpenDetails = (course) => {
+    setDetailsCourseId(course.id ?? course._id);
+  };
+
   CourseCard;
 
   if (loading) {
@@ -505,6 +678,7 @@ const StudentDashboard = () => {
                 key={course._id || course.id}
                 course={course}
                 onEnroll={handleEnrollClick}
+                onOpenDetails={handleOpenDetails}
               />
             ))}
           </div>
@@ -521,6 +695,14 @@ const StudentDashboard = () => {
         onManualPayment={handleManualPayment}
         onOnlinePayment={handleOnlinePayment}
       />
+
+      {detailsCourseId && (
+        <CourseDetailsModal
+          courseId={detailsCourseId}
+          onClose={() => setDetailsCourseId(null)}
+          onEnroll={handleEnrollClick}
+        />
+      )}
     </div>
   );
 };
