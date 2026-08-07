@@ -10,6 +10,8 @@ import {
   Paperclip,
   Download,
   Layers,
+  Star,
+  MessageSquare,
 } from "lucide-react";
 import api from "../../api/axios";
 
@@ -17,6 +19,209 @@ const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Space
 
 const display = { fontFamily: "'Space Grotesk', sans-serif" };
 const mono = { fontFamily: "'JetBrains Mono', monospace" };
+
+// --- NEW: star rating input (click to set, hover to preview) ---
+function StarRatingInput({ value, onChange, size = "h-6 w-6" }) {
+  const [hovered, setHovered] = useState(0);
+
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button
+          key={n}
+          type="button"
+          onClick={() => onChange(n)}
+          onMouseEnter={() => setHovered(n)}
+          onMouseLeave={() => setHovered(0)}
+          className="p-0.5"
+        >
+          <Star
+            className={`${size} transition-colors ${
+              n <= (hovered || value)
+                ? "fill-amber-400 text-amber-400"
+                : "text-slate-200"
+            }`}
+          />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// --- NEW: reviews & ratings section for the course ---
+function ReviewsSection({ courseId }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [myRating, setMyRating] = useState(0);
+  const [myComment, setMyComment] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const fetchReviews = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get(`/reviews/course/${courseId}`);
+      setData(res.data);
+      if (res.data.myReview) {
+        setMyRating(res.data.myReview.rating);
+        setMyComment(res.data.myReview.comment || "");
+      }
+    } catch (err) {
+      console.error("Failed to load reviews", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (courseId) fetchReviews();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [courseId]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (myRating < 1) {
+      setError("Please select a star rating.");
+      return;
+    }
+    setError("");
+    setSaving(true);
+    try {
+      await api.post("/reviews", {
+        courseId,
+        rating: myRating,
+        comment: myComment,
+      });
+      await fetchReviews();
+    } catch (err) {
+      setError(
+        err?.response?.data?.error || "Failed to save your review."
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const otherReviews = (data?.reviews || []).filter(
+    (r) => r.id !== data?.myReview?.id
+  );
+
+  return (
+    <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
+      <div className="flex items-center gap-2">
+        <MessageSquare className="h-4 w-4 text-sky-600" />
+        <h2 className="text-sm font-semibold text-slate-900">
+          Reviews &amp; Ratings
+        </h2>
+      </div>
+
+      {loading ? (
+        <div className="mt-4 h-16 bg-slate-50 rounded-lg animate-pulse" />
+      ) : (
+        <>
+          {/* Average rating summary */}
+          <div className="mt-4 flex items-center gap-3">
+            <span
+              className="text-3xl font-semibold text-slate-900"
+              style={display}
+            >
+              {data?.totalReviews > 0 ? data.averageRating.toFixed(1) : "—"}
+            </span>
+            <div>
+              <div className="flex">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`w-4 h-4 ${
+                      i < Math.round(data?.averageRating || 0)
+                        ? "fill-amber-400 text-amber-400"
+                        : "text-slate-200"
+                    }`}
+                  />
+                ))}
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                {data?.totalReviews || 0} review
+                {data?.totalReviews === 1 ? "" : "s"}
+              </p>
+            </div>
+          </div>
+
+          {/* Your review form */}
+          <form
+            onSubmit={handleSubmit}
+            className="mt-5 pt-5 border-t border-slate-100"
+          >
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide" style={mono}>
+              {data?.myReview ? "Edit your review" : "Rate this course"}
+            </p>
+            <div className="mt-2.5">
+              <StarRatingInput value={myRating} onChange={setMyRating} />
+            </div>
+            <textarea
+              value={myComment}
+              onChange={(e) => setMyComment(e.target.value)}
+              placeholder="Share your thoughts about this course (optional)"
+              rows={3}
+              className="mt-3 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+            />
+            {error && (
+              <p className="mt-2 text-xs text-red-600">{error}</p>
+            )}
+            <button
+              type="submit"
+              disabled={saving}
+              className="mt-3 inline-flex items-center px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-700 disabled:opacity-60 text-white text-sm font-medium transition-colors"
+            >
+              {saving
+                ? "Saving..."
+                : data?.myReview
+                  ? "Update Review"
+                  : "Submit Review"}
+            </button>
+          </form>
+
+          {/* Other students' reviews */}
+          {otherReviews.length > 0 && (
+            <div className="mt-6 pt-5 border-t border-slate-100 space-y-4">
+              {otherReviews.map((review) => (
+                <div key={review.id} className="flex gap-3">
+                  <div className="h-8 w-8 shrink-0 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center text-xs font-semibold">
+                    {review.student?.name?.[0]?.toUpperCase() || "?"}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-medium text-slate-900">
+                        {review.student?.name || "Student"}
+                      </p>
+                      <div className="flex">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-3 h-3 ${
+                              i < review.rating
+                                ? "fill-amber-400 text-amber-400"
+                                : "text-slate-200"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    {review.comment && (
+                      <p className="mt-1 text-sm text-slate-600">
+                        {review.comment}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
 
 const StudentRecordings = () => {
   const { courseId } = useParams();
@@ -214,6 +419,8 @@ const StudentRecordings = () => {
               </p>
             )}
           </div>
+
+          {courseId && <ReviewsSection courseId={courseId} />}
         </div>
 
         {/* Course content sidebar */}
