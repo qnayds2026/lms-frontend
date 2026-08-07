@@ -12,6 +12,7 @@ import {
   X,
   Eye,
   EyeOff,
+  Share2,
 } from "lucide-react";
 import api from "../../api/axios";
 
@@ -477,6 +478,27 @@ export default function AdminCourses() {
     }
   };
 
+  const handleShareCourse = async (course) => {
+    const url = `${window.location.origin}/courses/${course.id}`;
+
+    const shareData = {
+      title: course.title,
+      text: `🚀 Check out this course on QNAYDS LMS!\n\n${course.title}`,
+      url,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(url);
+        alert("Course link copied to clipboard!");
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   const handleCourseSaved = (updated) => {
     setCourses((prev) =>
       prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)),
@@ -657,6 +679,13 @@ export default function AdminCourses() {
                         >
                           <Video className="h-4 w-4" />
                         </Link>
+                        <button
+                          onClick={() => handleShareCourse(course)}
+                          className="flex items-center justify-center h-8 w-8 rounded-lg text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-colors"
+                          title="Share Course"
+                        >
+                          <Share2 className="h-4 w-4" />
+                        </button>
                         <button
                           onClick={() => handleDelete(course.id, course.title)}
                           className="flex items-center justify-center h-8 w-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
