@@ -111,6 +111,82 @@ function DashboardSkeleton() {
 }
 
 // --- NEW: course details modal, opened by clicking a card ---
+// --- NEW: renders course.description with basic markdown-style formatting
+// (## headings, **bold**, ✅/✔️ bullet lists) instead of showing raw syntax ---
+function parseInlineBold(text) {
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+}
+
+function FormattedText({ text, className = "" }) {
+  if (!text) return null;
+
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  const blocks = [];
+  let currentList = null;
+
+  lines.forEach((line, i) => {
+    const isBullet = /^(✅|✔️|✔)\s*/.test(line);
+
+    if (isBullet) {
+      const content = line.replace(/^(✅|✔️|✔)\s*/, "");
+      if (!currentList) {
+        currentList = { type: "list", items: [] };
+        blocks.push(currentList);
+      }
+      currentList.items.push(content);
+      return;
+    }
+
+    currentList = null;
+
+    if (line.startsWith("## ")) {
+      blocks.push({ type: "heading", content: line.slice(3) });
+    } else {
+      blocks.push({ type: "paragraph", content: line });
+    }
+  });
+
+  return (
+    <div className={className}>
+      {blocks.map((block, i) => {
+        if (block.type === "heading") {
+          return (
+            <h4
+              key={i}
+              className="mt-4 first:mt-0 text-sm font-semibold text-slate-900"
+            >
+              {parseInlineBold(block.content)}
+            </h4>
+          );
+        }
+        if (block.type === "list") {
+          return (
+            <ul key={i} className="mt-2 space-y-1.5">
+              {block.items.map((item, j) => (
+                <li key={j} className="flex items-start gap-2 text-sm text-slate-600">
+                  <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <span>{parseInlineBold(item)}</span>
+                </li>
+              ))}
+            </ul>
+          );
+        }
+        return (
+          <p key={i} className="mt-2 first:mt-0 text-sm text-slate-600 leading-relaxed">
+            {parseInlineBold(block.content)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 function CourseDetailsModal({ courseId, onClose, onEnroll }) {
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -198,9 +274,7 @@ function CourseDetailsModal({ courseId, onClose, onEnroll }) {
             </h2>
 
             {course.description && (
-              <p className="mt-3 text-sm text-slate-600 leading-relaxed">
-                {course.description}
-              </p>
+              <FormattedText text={course.description} className="mt-3" />
             )}
 
             {typeof course.price === "number" && (
@@ -397,7 +471,10 @@ function CourseCard({ course, onEnroll, onOpenDetails }) {
 
         {course.description && (
           <p className="mt-2.5 text-xs sm:text-sm text-slate-500 leading-relaxed line-clamp-2">
-            {course.description}
+            {course.description
+              .replace(/[#*✅✔️✔]/g, "")
+              .replace(/\s+/g, " ")
+              .trim()}
           </p>
         )}
 

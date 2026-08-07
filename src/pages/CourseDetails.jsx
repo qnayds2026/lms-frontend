@@ -1,7 +1,83 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import api from "../api/axios";
+
+// Renders course.description with basic markdown-style formatting
+// (## headings, **bold**, ✅/✔️ bullet lists) instead of showing raw syntax.
+function parseInlineBold(text) {
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+}
+
+function FormattedText({ text, className = "" }) {
+  if (!text) return null;
+
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  const blocks = [];
+  let currentList = null;
+
+  lines.forEach((line) => {
+    const isBullet = /^(✅|✔️|✔)\s*/.test(line);
+
+    if (isBullet) {
+      const content = line.replace(/^(✅|✔️|✔)\s*/, "");
+      if (!currentList) {
+        currentList = { type: "list", items: [] };
+        blocks.push(currentList);
+      }
+      currentList.items.push(content);
+      return;
+    }
+
+    currentList = null;
+
+    if (line.startsWith("## ")) {
+      blocks.push({ type: "heading", content: line.slice(3) });
+    } else {
+      blocks.push({ type: "paragraph", content: line });
+    }
+  });
+
+  return (
+    <div className={className}>
+      {blocks.map((block, i) => {
+        if (block.type === "heading") {
+          return (
+            <h3
+              key={i}
+              className="mt-6 first:mt-0 text-base font-semibold text-slate-900"
+            >
+              {parseInlineBold(block.content)}
+            </h3>
+          );
+        }
+        if (block.type === "list") {
+          return (
+            <ul key={i} className="mt-3 space-y-2">
+              {block.items.map((item, j) => (
+                <li key={j} className="flex items-start gap-2 text-sm text-slate-600">
+                  <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <span>{parseInlineBold(item)}</span>
+                </li>
+              ))}
+            </ul>
+          );
+        }
+        return (
+          <p key={i} className="mt-3 first:mt-0 text-slate-600 leading-relaxed">
+            {parseInlineBold(block.content)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function CourseDetail() {
   const { id } = useParams();
@@ -88,9 +164,7 @@ export default function CourseDetail() {
         </h1>
 
         {course.description && (
-          <p className="mt-4 text-slate-600 leading-relaxed">
-            {course.description}
-          </p>
+          <FormattedText text={course.description} className="mt-4" />
         )}
 
         {typeof course.price === "number" && (
