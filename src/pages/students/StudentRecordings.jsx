@@ -348,7 +348,7 @@ const StudentRecordings = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
         {/* Video area — YouTube / Drive embed */}
-        <div>
+        <div className="order-1">
           <div className="relative w-full overflow-hidden rounded-xl sm:rounded-2xl bg-slate-900 shadow-lg shadow-slate-200">
             <div
               className={
@@ -424,7 +424,7 @@ const StudentRecordings = () => {
         </div>
 
         {/* Course content sidebar */}
-        <aside className="rounded-2xl border border-slate-200 bg-white h-fit shadow-sm">
+        <aside className="order-2 rounded-2xl border border-slate-200 bg-white h-fit shadow-sm">
           <div className="border-b border-slate-100 px-4 py-4">
             <h2 className="text-sm font-semibold text-slate-900">
               Course content
