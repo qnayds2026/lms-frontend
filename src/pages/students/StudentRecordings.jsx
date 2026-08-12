@@ -109,7 +109,7 @@ function ReviewsSection({ courseId }) {
   );
 
   return (
-    <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
       <div className="flex items-center gap-2">
         <MessageSquare className="h-4 w-4 text-sky-600" />
         <h2 className="text-sm font-semibold text-slate-900">
@@ -416,9 +416,11 @@ const StudentRecordings = () => {
         Back to My Courses
       </Link>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
+      <div
+        className={`grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 [grid-template-areas:'video'_'content'_'reviews'] lg:[grid-template-areas:'video_content'_'reviews_content']`}
+      >
         {/* Video area — YouTube / Drive embed */}
-        <div>
+        <div className="[grid-area:video]">
           <div className="relative w-full overflow-hidden rounded-xl sm:rounded-2xl bg-slate-900 shadow-lg shadow-slate-200">
             <div
               className={
@@ -486,8 +488,6 @@ const StudentRecordings = () => {
               </p>
             )}
           </div>
-
-          {courseId && <ReviewsSection courseId={courseId} />}
         </div>
 
         {/* Course content sidebar */}
@@ -660,6 +660,13 @@ const StudentRecordings = () => {
             )}
           </div>
         </aside>
+
+        {/* Reviews & ratings */}
+        {courseId && (
+          <div className="[grid-area:reviews]">
+            <ReviewsSection courseId={courseId} />
+          </div>
+        )}
       </div>
     </div>
   );
