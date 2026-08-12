@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   ChevronLeft,
+  ChevronDown,
   Plus,
   Eye,
   EyeOff,
@@ -12,8 +13,10 @@ import {
   Trash2,
   GripVertical,
   Layers,
+  NotebookText,
 } from "lucide-react";
 import api from "../../api/axios";
+import ModuleNotes from "../../components/notes/ModuleNotes";
 
 const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');`;
 
@@ -21,7 +24,11 @@ const display = { fontFamily: "'Space Grotesk', sans-serif" };
 const mono = { fontFamily: "'JetBrains Mono', monospace" };
 
 function AddRecordingModal({ moduleId, onClose, onCreated }) {
-  const [form, setForm] = useState({ title: "", description: "", youtubeUrl: "" });
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    youtubeUrl: "",
+  });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -85,7 +92,8 @@ function AddRecordingModal({ moduleId, onClose, onCreated }) {
             className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
           />
           <p className="text-xs text-slate-400 -mt-1">
-            Paste a YouTube link, or a Google Drive share link (make sure sharing is set to "Anyone with the link").
+            Paste a YouTube link, or a Google Drive share link (make sure
+            sharing is set to "Anyone with the link").
           </p>
           <button
             type="submit"
@@ -106,7 +114,9 @@ function EditRecordingModal({ recording, onClose, onUpdated }) {
     description: recording.description || "",
     youtubeUrl:
       recording.videoUrl ||
-      (recording.videoId ? `https://www.youtube.com/watch?v=${recording.videoId}` : ""),
+      (recording.videoId
+        ? `https://www.youtube.com/watch?v=${recording.videoId}`
+        : ""),
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -170,7 +180,8 @@ function EditRecordingModal({ recording, onClose, onUpdated }) {
             className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
           />
           <p className="text-xs text-slate-400 -mt-1">
-            Paste a YouTube link, or a Google Drive share link (make sure sharing is set to "Anyone with the link").
+            Paste a YouTube link, or a Google Drive share link (make sure
+            sharing is set to "Anyone with the link").
           </p>
           <button
             type="submit"
@@ -186,17 +197,20 @@ function EditRecordingModal({ recording, onClose, onUpdated }) {
 }
 
 function VideoPreviewModal({ recording, onClose }) {
-  // Prefer the backend-computed embedUrl; fall back to building one from
-  // videoId (YouTube) or just linking out if neither is available.
   const embedSrc =
     recording.embedUrl ||
-    (recording.videoId ? `https://www.youtube.com/embed/${recording.videoId}` : null);
+    (recording.videoId
+      ? `https://www.youtube.com/embed/${recording.videoId}`
+      : null);
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 px-4">
       <div className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden relative">
         <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
-          <h3 className="text-sm font-semibold text-slate-900 truncate pr-4" style={display}>
+          <h3
+            className="text-sm font-semibold text-slate-900 truncate pr-4"
+            style={display}
+          >
             {recording.title}
           </h3>
           <button
@@ -241,7 +255,6 @@ function VideoPreviewModal({ recording, onClose }) {
   );
 }
 
-
 function AddModuleModal({ courseId, onClose, onCreated }) {
   const [title, setTitle] = useState("");
   const [saving, setSaving] = useState(false);
@@ -256,7 +269,11 @@ function AddModuleModal({ courseId, onClose, onCreated }) {
       onCreated(res.data);
       onClose();
     } catch (err) {
-      setError(err?.response?.data?.error || err?.response?.data?.message || "Failed to add module.");
+      setError(
+        err?.response?.data?.error ||
+          err?.response?.data?.message ||
+          "Failed to add module.",
+      );
     } finally {
       setSaving(false);
     }
@@ -301,7 +318,6 @@ function AddModuleModal({ courseId, onClose, onCreated }) {
   );
 }
 
-// --- NEW: Edit Module modal ---
 function EditModuleModal({ module, onClose, onUpdated }) {
   const [title, setTitle] = useState(module.title || "");
   const [saving, setSaving] = useState(false);
@@ -316,7 +332,11 @@ function EditModuleModal({ module, onClose, onUpdated }) {
       onUpdated(res.data);
       onClose();
     } catch (err) {
-      setError(err?.response?.data?.error || err?.response?.data?.message || "Failed to update module.");
+      setError(
+        err?.response?.data?.error ||
+          err?.response?.data?.message ||
+          "Failed to update module.",
+      );
     } finally {
       setSaving(false);
     }
@@ -368,22 +388,46 @@ const AdminManageRecordings = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [modalModuleId, setModalModuleId] = useState(null);
-  const [editingRecording, setEditingRecording] = useState(null); // { moduleId, recording }
-  const [previewRecording, setPreviewRecording] = useState(null); // recording being previewed
+  const [editingRecording, setEditingRecording] = useState(null);
+  const [previewRecording, setPreviewRecording] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
 
-  // NEW: module add/edit/delete state
   const [addModuleOpen, setAddModuleOpen] = useState(false);
   const [editingModule, setEditingModule] = useState(null);
   const [deletingModuleId, setDeletingModuleId] = useState(null);
 
-  // NEW: drag-and-drop state (recordings, within a module)
+  // Which modules currently have their Notes panel expanded
+  const [openNotes, setOpenNotes] = useState(new Set());
+  const toggleNotes = (moduleId) => {
+    setOpenNotes((prev) => {
+      const next = new Set(prev);
+      if (next.has(moduleId)) {
+        next.delete(moduleId);
+      } else {
+        next.add(moduleId);
+      }
+      return next;
+    });
+  };
+
+  // Note count per module, filled in as soon as each module's ModuleNotes
+  // instance mounts (it's always mounted, just visually hidden when
+  // collapsed — see render below), so counts are accurate immediately.
+  const [noteCounts, setNoteCounts] = useState({});
+
+  // Refs into each module's ModuleNotes instance, so the header's quick-add
+  // button can open the note form directly without requiring the panel to
+  // be expanded first.
+  const moduleNotesRefs = useRef({});
+
   const dragModuleId = useRef(null);
   const dragIndex = useRef(null);
-  const [dragOverIndex, setDragOverIndex] = useState({ moduleId: null, index: null });
-  const [reordering, setReordering] = useState(null); // moduleId currently saving
+  const [dragOverIndex, setDragOverIndex] = useState({
+    moduleId: null,
+    index: null,
+  });
+  const [reordering, setReordering] = useState(null);
 
-  // NEW: drag-and-drop state (modules themselves, within the course)
   const dragModuleIndex = useRef(null);
   const [dragOverModuleIndex, setDragOverModuleIndex] = useState(null);
   const [reorderingModules, setReorderingModules] = useState(false);
@@ -402,8 +446,8 @@ const AdminManageRecordings = () => {
           api
             .get(`/recordings/module/${m.id}`)
             .then((res) => res.data)
-            .catch(() => [])
-        )
+            .catch(() => []),
+        ),
       );
 
       setModules(
@@ -411,7 +455,7 @@ const AdminManageRecordings = () => {
           id: m.id,
           title: m.title,
           recordings: recordingsByModule[i] || [],
-        }))
+        })),
       );
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to load course.");
@@ -437,11 +481,13 @@ const AdminManageRecordings = () => {
             ? {
                 ...m,
                 recordings: m.recordings.map((r) =>
-                  r.id === recording.id ? { ...r, isPublished: !r.isPublished } : r
+                  r.id === recording.id
+                    ? { ...r, isPublished: !r.isPublished }
+                    : r,
                 ),
               }
-            : m
-        )
+            : m,
+        ),
       );
     } catch (err) {
       alert(err?.response?.data?.error || "Failed to update publish status.");
@@ -455,11 +501,11 @@ const AdminManageRecordings = () => {
           ? {
               ...m,
               recordings: m.recordings.map((r) =>
-                r.id === updated.id ? { ...r, ...updated } : r
+                r.id === updated.id ? { ...r, ...updated } : r,
               ),
             }
-          : m
-      )
+          : m,
+      ),
     );
   };
 
@@ -473,9 +519,12 @@ const AdminManageRecordings = () => {
       setModules((prev) =>
         prev.map((m) =>
           m.id === moduleId
-            ? { ...m, recordings: m.recordings.filter((r) => r.id !== recording.id) }
-            : m
-        )
+            ? {
+                ...m,
+                recordings: m.recordings.filter((r) => r.id !== recording.id),
+              }
+            : m,
+        ),
       );
     } catch (err) {
       alert(err?.response?.data?.error || "Failed to delete recording.");
@@ -484,7 +533,6 @@ const AdminManageRecordings = () => {
     }
   };
 
-  // NEW: module handlers
   const handleModuleCreated = (newModule) => {
     setModules((prev) => [
       ...prev,
@@ -494,7 +542,9 @@ const AdminManageRecordings = () => {
 
   const handleModuleUpdated = (updated) => {
     setModules((prev) =>
-      prev.map((m) => (m.id === updated.id ? { ...m, title: updated.title } : m))
+      prev.map((m) =>
+        m.id === updated.id ? { ...m, title: updated.title } : m,
+      ),
     );
   };
 
@@ -517,25 +567,26 @@ const AdminManageRecordings = () => {
       alert(
         err?.response?.data?.error ||
           err?.response?.data?.message ||
-          "Failed to delete module."
+          "Failed to delete module.",
       );
     } finally {
       setDeletingModuleId(null);
     }
   };
 
-  // NEW: drag-and-drop reordering within a module
   const persistOrder = async (moduleId, orderedRecordings) => {
     setReordering(moduleId);
     try {
-      // NOTE: adjust endpoint/payload to match your actual reorder API if different
       await api.patch("/recordings/reorder", {
         moduleId,
         orderedIds: orderedRecordings.map((r) => r.id),
       });
     } catch (err) {
-      alert(err?.response?.data?.error || "Failed to save new order. Refresh and try again.");
-      fetchData(); // revert to server state on failure
+      alert(
+        err?.response?.data?.error ||
+          "Failed to save new order. Refresh and try again.",
+      );
+      fetchData();
     } finally {
       setReordering(null);
     }
@@ -548,7 +599,7 @@ const AdminManageRecordings = () => {
 
   const handleDragOver = (e, moduleId, index) => {
     e.preventDefault();
-    if (dragModuleId.current !== moduleId) return; // no cross-module dragging
+    if (dragModuleId.current !== moduleId) return;
     setDragOverIndex({ moduleId, index });
   };
 
@@ -560,7 +611,11 @@ const AdminManageRecordings = () => {
     dragModuleId.current = null;
     dragIndex.current = null;
 
-    if (fromModuleId !== moduleId || fromIndex === null || fromIndex === dropIndex) {
+    if (
+      fromModuleId !== moduleId ||
+      fromIndex === null ||
+      fromIndex === dropIndex
+    ) {
       return;
     }
 
@@ -572,7 +627,7 @@ const AdminManageRecordings = () => {
         updated.splice(dropIndex, 0, moved);
         persistOrder(moduleId, updated);
         return { ...m, recordings: updated };
-      })
+      }),
     );
   };
 
@@ -582,7 +637,6 @@ const AdminManageRecordings = () => {
     setDragOverIndex({ moduleId: null, index: null });
   };
 
-  // NEW: drag-and-drop reordering of modules themselves
   const persistModuleOrder = async (orderedModules) => {
     setReorderingModules(true);
     try {
@@ -594,9 +648,9 @@ const AdminManageRecordings = () => {
       alert(
         err?.response?.data?.message ||
           err?.response?.data?.error ||
-          "Failed to save new module order. Refresh and try again."
+          "Failed to save new module order. Refresh and try again.",
       );
-      fetchData(); // revert to server state on failure
+      fetchData();
     } finally {
       setReorderingModules(false);
     }
@@ -639,7 +693,10 @@ const AdminManageRecordings = () => {
         <div className="h-8 w-64 bg-slate-200 rounded-lg" />
         <div className="mt-8 space-y-4">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="bg-white rounded-2xl border border-slate-200 h-24" />
+            <div
+              key={i}
+              className="bg-white rounded-2xl border border-slate-200 h-24"
+            />
           ))}
         </div>
       </div>
@@ -666,12 +723,14 @@ const AdminManageRecordings = () => {
           >
             <Terminal className="w-3.5 h-3.5" /> manage_recordings
           </span>
-          <h1 className="mt-3 text-2xl font-semibold text-slate-900" style={display}>
+          <h1
+            className="mt-3 text-2xl font-semibold text-slate-900"
+            style={display}
+          >
             {course?.title}
           </h1>
         </div>
 
-        {/* NEW: Add Module button */}
         <div className="flex items-center gap-3">
           {reorderingModules && (
             <span className="text-xs text-slate-400" style={mono}>
@@ -695,146 +754,225 @@ const AdminManageRecordings = () => {
       )}
 
       <div className="mt-8 space-y-6">
-        {modules.map((module, moduleIndex) => (
-          <div
-            key={module.id}
-            draggable
-            onDragStart={() => handleModuleDragStart(moduleIndex)}
-            onDragOver={(e) => handleModuleDragOver(e, moduleIndex)}
-            onDrop={(e) => handleModuleDrop(e, moduleIndex)}
-            onDragEnd={handleModuleDragEnd}
-            className={`bg-white rounded-2xl border border-slate-200 transition-colors ${
-              dragOverModuleIndex === moduleIndex ? "border-sky-300 bg-sky-50/40" : ""
-            }`}
-          >
-            <div className="flex items-center justify-between gap-3 px-5 py-4 bg-sky-50/70 border-b border-sky-100 border-l-[3px] border-l-sky-500 rounded-t-2xl flex-wrap">
-              <div className="flex items-center gap-2">
-                {/* NEW: module drag handle */}
-                <span
-                  className="shrink-0 cursor-grab active:cursor-grabbing text-sky-300 hover:text-sky-500"
-                  title="Drag to reorder module"
-                >
-                  <GripVertical className="h-4 w-4" />
-                </span>
-                <Layers className="h-3.5 w-3.5 text-sky-500 shrink-0" />
-                <h2
-                  className="text-xs font-semibold text-sky-700 uppercase tracking-wide"
-                  style={mono}
-                >
-                  {module.title}
-                </h2>
-                {/* NEW: Edit module button */}
-                <button
-                  onClick={() => setEditingModule(module)}
-                  className="inline-flex items-center justify-center h-6 w-6 rounded-md text-sky-400 hover:text-sky-700 hover:bg-sky-100 transition-colors"
-                  title="Edit module"
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                </button>
-                {/* NEW: Delete module button */}
-                <button
-                  onClick={() => handleDeleteModule(module)}
-                  disabled={deletingModuleId === module.id}
-                  className="inline-flex items-center justify-center h-6 w-6 rounded-md text-sky-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
-                  title="Delete module"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-                {reordering === module.id && (
-                  <span className="text-xs text-sky-400" style={mono}>
-                    saving order...
-                  </span>
-                )}
-              </div>
-              <button
-                onClick={() => setModalModuleId(module.id)}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-600 hover:text-sky-700"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                Add Recording
-              </button>
-            </div>
-            <ul className="divide-y divide-slate-100">
-              {module.recordings.map((rec, index) => (
-                <li
-                  key={rec.id}
-                  draggable
-                  onDragStart={() => handleDragStart(module.id, index)}
-                  onDragOver={(e) => handleDragOver(e, module.id, index)}
-                  onDrop={(e) => handleDrop(e, module.id, index)}
-                  onDragEnd={handleDragEnd}
-                  className={`flex items-center gap-3 px-5 py-3 transition-colors ${
-                    dragOverIndex.moduleId === module.id && dragOverIndex.index === index
-                      ? "bg-sky-50"
-                      : ""
-                  }`}
-                >
-                  {/* NEW: drag handle */}
+        {modules.map((module, moduleIndex) => {
+          const notesOpen = openNotes.has(module.id);
+          return (
+            <div
+              key={module.id}
+              draggable
+              onDragStart={() => handleModuleDragStart(moduleIndex)}
+              onDragOver={(e) => handleModuleDragOver(e, moduleIndex)}
+              onDrop={(e) => handleModuleDrop(e, moduleIndex)}
+              onDragEnd={handleModuleDragEnd}
+              className={`bg-white rounded-2xl border border-slate-200 transition-colors ${
+                dragOverModuleIndex === moduleIndex
+                  ? "border-sky-300 bg-sky-50/40"
+                  : ""
+              }`}
+            >
+              {/* Module header */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-5 py-4 bg-sky-50/70 border-b border-sky-100 border-l-[3px] border-l-sky-500 rounded-t-2xl">
+                <div className="flex items-center gap-2 flex-wrap min-w-0">
                   <span
-                    className="shrink-0 cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500"
-                    title="Drag to reorder"
+                    className="shrink-0 cursor-grab active:cursor-grabbing text-sky-300 hover:text-sky-500"
+                    title="Drag to reorder module"
                   >
                     <GripVertical className="h-4 w-4" />
                   </span>
-                  <button
-                    onClick={() => setPreviewRecording(rec)}
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-50 hover:bg-sky-100 transition-colors"
-                    title="Preview video"
+                  <Layers className="h-3.5 w-3.5 text-sky-500 shrink-0" />
+                  <h2
+                    className="text-xs font-semibold text-sky-700 uppercase tracking-wide wrap-break-words"
+                    style={mono}
                   >
-                    <PlaySquare className="h-4 w-4 text-sky-600" />
-                  </button>
+                    {module.title}
+                  </h2>
                   <button
-                    onClick={() => setPreviewRecording(rec)}
-                    className="flex-1 min-w-0 text-left"
-                    title="Preview video"
-                  >
-                    <p className="text-sm font-medium text-slate-900 truncate hover:text-sky-600 transition-colors">
-                      {rec.title}
-                    </p>
-                    {rec.duration && (
-                      <p className="text-xs text-slate-400">{rec.duration}</p>
-                    )}
-                  </button>
-                  <button
-                    onClick={() => togglePublish(rec, module.id)}
-                    className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                      rec.isPublished
-                        ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
-                        : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                    }`}
-                  >
-                    {rec.isPublished ? (
-                      <Eye className="h-3.5 w-3.5" />
-                    ) : (
-                      <EyeOff className="h-3.5 w-3.5" />
-                    )}
-                    {rec.isPublished ? "Published" : "Draft"}
-                  </button>
-                  <button
-                    onClick={() => setEditingRecording({ moduleId: module.id, recording: rec })}
-                    className="shrink-0 inline-flex items-center justify-center h-8 w-8 rounded-lg text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-colors"
-                    title="Edit recording"
+                    onClick={() => setEditingModule(module)}
+                    className="inline-flex items-center justify-center h-6 w-6 rounded-md text-sky-400 hover:text-sky-700 hover:bg-sky-100 transition-colors shrink-0"
+                    title="Edit module"
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </button>
                   <button
-                    onClick={() => handleDelete(rec, module.id)}
-                    disabled={deletingId === rec.id}
-                    className="shrink-0 inline-flex items-center justify-center h-8 w-8 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
-                    title="Delete recording"
+                    onClick={() => handleDeleteModule(module)}
+                    disabled={deletingModuleId === module.id}
+                    className="inline-flex items-center justify-center h-6 w-6 rounded-md text-sky-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50 shrink-0"
+                    title="Delete module"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
-                </li>
-              ))}
-              {module.recordings.length === 0 && (
-                <li className="px-5 py-6 text-center text-sm text-slate-400">
-                  No recordings yet.
-                </li>
-              )}
-            </ul>
-          </div>
-        ))}
+                  {reordering === module.id && (
+                    <span className="text-xs text-sky-400" style={mono}>
+                      saving order...
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap shrink-0">
+                  {/* Notes — context-aware: opens the add form directly when the
+                      module has no notes yet, otherwise toggles the panel.
+                      This removes the need for a second, confusing "+" button. */}
+                  <button
+                    onClick={() => {
+                      const count = noteCounts[module.id];
+                      if (count === 0) {
+                        setOpenNotes((prev) => new Set(prev).add(module.id));
+                        moduleNotesRefs.current[module.id]?.openAdd();
+                      } else {
+                        toggleNotes(module.id);
+                      }
+                    }}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap ${
+                      notesOpen
+                        ? "bg-sky-600 text-white"
+                        : "bg-white text-sky-700 border border-sky-200 hover:bg-sky-50"
+                    }`}
+                  >
+                    <NotebookText className="h-3.5 w-3.5" />
+                    Notes
+                    {noteCounts[module.id] !== undefined && (
+                      <span
+                        className={`inline-flex items-center justify-center min-w-[1.1rem] h-[1.1rem] px-1 rounded-full text-[10px] ${
+                          notesOpen
+                            ? "bg-white/25 text-white"
+                            : noteCounts[module.id] === 0
+                              ? "bg-amber-100 text-amber-700"
+                              : "bg-sky-100 text-sky-700"
+                        }`}
+                      >
+                        {noteCounts[module.id]}
+                      </span>
+                    )}
+                    {noteCounts[module.id] === 0 ? (
+                      <Plus className="h-3.5 w-3.5" />
+                    ) : (
+                      <ChevronDown
+                        className={`h-3.5 w-3.5 transition-transform ${
+                          notesOpen ? "rotate-180" : ""
+                        }`}
+                      />
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => setModalModuleId(module.id)}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-600 hover:text-sky-700 whitespace-nowrap"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Add Recording
+                  </button>
+                </div>
+              </div>
+
+              {/* Recordings list */}
+              <ul className="divide-y divide-slate-100">
+                {module.recordings.map((rec, index) => (
+                  <li
+                    key={rec.id}
+                    draggable
+                    onDragStart={() => handleDragStart(module.id, index)}
+                    onDragOver={(e) => handleDragOver(e, module.id, index)}
+                    onDrop={(e) => handleDrop(e, module.id, index)}
+                    onDragEnd={handleDragEnd}
+                    className={`flex items-center gap-2 sm:gap-3 px-4 sm:px-5 py-3 flex-wrap sm:flex-nowrap transition-colors ${
+                      dragOverIndex.moduleId === module.id &&
+                      dragOverIndex.index === index
+                        ? "bg-sky-50"
+                        : ""
+                    }`}
+                  >
+                    <span
+                      className="hidden sm:block shrink-0 cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500"
+                      title="Drag to reorder"
+                    >
+                      <GripVertical className="h-4 w-4" />
+                    </span>
+                    <button
+                      onClick={() => setPreviewRecording(rec)}
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-50 hover:bg-sky-100 transition-colors"
+                      title="Preview video"
+                    >
+                      <PlaySquare className="h-4 w-4 text-sky-600" />
+                    </button>
+                    <button
+                      onClick={() => setPreviewRecording(rec)}
+                      className="flex-1 min-w-30 text-left"
+                      title="Preview video"
+                    >
+                      <p className="text-sm font-medium text-slate-900 truncate hover:text-sky-600 transition-colors">
+                        {rec.title}
+                      </p>
+                      {rec.duration && (
+                        <p className="text-xs text-slate-400">{rec.duration}</p>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => togglePublish(rec, module.id)}
+                      className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                        rec.isPublished
+                          ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                          : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                      }`}
+                    >
+                      {rec.isPublished ? (
+                        <Eye className="h-3.5 w-3.5" />
+                      ) : (
+                        <EyeOff className="h-3.5 w-3.5" />
+                      )}
+                      {rec.isPublished ? "Published" : "Draft"}
+                    </button>
+                    <div className="flex items-center gap-1 shrink-0 ml-auto sm:ml-0">
+                      <button
+                        onClick={() =>
+                          setEditingRecording({
+                            moduleId: module.id,
+                            recording: rec,
+                          })
+                        }
+                        className="shrink-0 inline-flex items-center justify-center h-8 w-8 rounded-lg text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-colors"
+                        title="Edit recording"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(rec, module.id)}
+                        disabled={deletingId === rec.id}
+                        className="shrink-0 inline-flex items-center justify-center h-8 w-8 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                        title="Delete recording"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+                {module.recordings.length === 0 && (
+                  <li className="px-5 py-6 text-center text-sm text-slate-400">
+                    No recordings yet.
+                  </li>
+                )}
+              </ul>
+
+              {/* Notes panel — always mounted (so counts load immediately and the
+                  quick-add ref is always ready), just visually hidden when collapsed */}
+              <div
+                className={`border-t border-slate-100 px-5 pb-5 ${
+                  notesOpen ? "" : "hidden"
+                }`}
+              >
+                <ModuleNotes
+                  ref={(el) => {
+                    moduleNotesRefs.current[module.id] = el;
+                  }}
+                  moduleId={module.id}
+                  editable
+                  onCountChange={(count) =>
+                    setNoteCounts((prev) => ({ ...prev, [module.id]: count }))
+                  }
+                />
+              </div>
+            </div>
+          );
+        })}
 
         {modules.length === 0 && (
           <div className="bg-white rounded-2xl border border-dashed border-slate-200 p-10 text-center text-sm text-slate-400">
@@ -852,8 +990,8 @@ const AdminManageRecordings = () => {
               prev.map((m) =>
                 m.id === modalModuleId
                   ? { ...m, recordings: [...m.recordings, newRec] }
-                  : m
-              )
+                  : m,
+              ),
             )
           }
         />
@@ -863,7 +1001,9 @@ const AdminManageRecordings = () => {
         <EditRecordingModal
           recording={editingRecording.recording}
           onClose={() => setEditingRecording(null)}
-          onUpdated={(updated) => handleUpdated(editingRecording.moduleId, updated)}
+          onUpdated={(updated) =>
+            handleUpdated(editingRecording.moduleId, updated)
+          }
         />
       )}
 

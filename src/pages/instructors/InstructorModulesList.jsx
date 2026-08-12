@@ -85,7 +85,7 @@ const InstructorModulesList = () => {
                 <Layers className="w-5 h-5" />
               </span>
 
-              <h3 className="mt-4 font-semibold text-slate-900 leading-snug">
+              <h3 className="mt-4 font-semibold text-slate-900 leading-snug wrap-break-words">
                 {course.title}
               </h3>
 

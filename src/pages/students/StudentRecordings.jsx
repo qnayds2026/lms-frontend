@@ -12,6 +12,10 @@ import {
   Layers,
   Star,
   MessageSquare,
+  BookOpen,
+  FileText,
+  Video,
+  Link as LinkIcon,
 } from "lucide-react";
 import api from "../../api/axios";
 
@@ -94,16 +98,14 @@ function ReviewsSection({ courseId }) {
       });
       await fetchReviews();
     } catch (err) {
-      setError(
-        err?.response?.data?.error || "Failed to save your review."
-      );
+      setError(err?.response?.data?.error || "Failed to save your review.");
     } finally {
       setSaving(false);
     }
   };
 
   const otherReviews = (data?.reviews || []).filter(
-    (r) => r.id !== data?.myReview?.id
+    (r) => r.id !== data?.myReview?.id,
   );
 
   return (
@@ -152,7 +154,10 @@ function ReviewsSection({ courseId }) {
             onSubmit={handleSubmit}
             className="mt-5 pt-5 border-t border-slate-100"
           >
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide" style={mono}>
+            <p
+              className="text-xs font-semibold text-slate-500 uppercase tracking-wide"
+              style={mono}
+            >
               {data?.myReview ? "Edit your review" : "Rate this course"}
             </p>
             <div className="mt-2.5">
@@ -165,9 +170,7 @@ function ReviewsSection({ courseId }) {
               rows={3}
               className="mt-3 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
             />
-            {error && (
-              <p className="mt-2 text-xs text-red-600">{error}</p>
-            )}
+            {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
             <button
               type="submit"
               disabled={saving}
@@ -223,6 +226,66 @@ function ReviewsSection({ courseId }) {
   );
 }
 
+// --- NEW: a single read-only note, expandable to show description + links ---
+function StudentNoteItem({ note }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="rounded-lg overflow-hidden">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center gap-2 px-2 py-2 text-left hover:bg-sky-50 rounded-lg transition-colors"
+      >
+        <FileText className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+        <span className="flex-1 min-w-0 text-sm text-slate-700 truncate">
+          {note.title}
+        </span>
+        <ChevronDown
+          className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${
+            open ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      {open && (
+        <div className="px-2 pb-3 pl-9 space-y-2">
+          {note.description && (
+            <p className="text-xs text-slate-500 leading-relaxed whitespace-pre-line">
+              {note.description}
+            </p>
+          )}
+          {(note.referenceVideo || note.referenceLink) && (
+            <div className="flex flex-wrap gap-3">
+              {note.referenceVideo && (
+                <a
+                  href={note.referenceVideo}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-sky-600 hover:text-sky-700"
+                >
+                  <Video className="w-3 h-3" />
+                  Reference video
+                </a>
+              )}
+              {note.referenceLink && (
+                <a
+                  href={note.referenceLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-sky-600 hover:text-sky-700"
+                >
+                  <LinkIcon className="w-3 h-3" />
+                  Reference link
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const StudentRecordings = () => {
   const { courseId } = useParams();
   const [course, setCourse] = useState(null);
@@ -256,11 +319,18 @@ const StudentRecordings = () => {
               .then((res) => res.data?.data || res.data || [])
               .catch(() => []);
 
+            // NEW: read-only notes for this module
+            const notes = await api
+              .get(`/notes/module/${m.id}`)
+              .then((res) => res.data?.data || res.data || [])
+              .catch(() => []);
+
             return {
               id: m.id,
               title: m.title,
               recordings,
               attachments,
+              notes,
             };
           }),
         );
@@ -381,9 +451,6 @@ const StudentRecordings = () => {
                   No video available for this lesson yet.
                 </div>
               )}
-              {/* Blocks Google Drive's built-in "open in Drive / download" icon
-                  in the top-right of its preview UI — we can't remove it from
-                  inside the cross-origin iframe, so we intercept clicks here. */}
               {activeRecording?.provider === "GOOGLE_DRIVE" &&
                 activeRecording?.embedUrl && (
                   <div
@@ -424,34 +491,53 @@ const StudentRecordings = () => {
         </div>
 
         {/* Course content sidebar */}
-        <aside className="[grid-area:content] rounded-2xl border border-slate-200 bg-white h-fit shadow-sm">
-          <div className="border-b border-slate-100 px-4 py-4">
-            <h2 className="text-sm font-semibold text-slate-900">
-              Course content
-            </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              {allRecordings.length} lessons across {modules.length} modules
-            </p>
+        <aside className="rounded-2xl border border-slate-200 bg-white h-fit shadow-sm overflow-hidden">
+          <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-4">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-50">
+              <Layers className="w-4 h-4 text-sky-600" />
+            </span>
+            <div className="min-w-0">
+              <h2 className="text-sm font-semibold text-slate-900">
+                Course content
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5 truncate">
+                {allRecordings.length} lessons across {modules.length} modules
+              </p>
+            </div>
           </div>
 
-          <div className="max-h-[70vh] overflow-y-auto">
+          <div className="sm:max-h-[70vh] sm:overflow-y-auto">
             {modules.map((module) => {
               const isExpanded = expandedModuleIds.has(module.id);
               return (
                 <div key={module.id}>
                   <button
                     onClick={() => toggleModule(module.id)}
-                    className="w-full flex items-center gap-2 px-4 py-2.5 bg-sky-50/70 border-y border-sky-100 border-l-[3px] border-l-sky-500 text-left"
+                    className="w-full flex items-start gap-2 px-4 py-3 bg-sky-50/70 border-y border-sky-100 border-l-[3px] border-l-sky-500 text-left"
                   >
-                    <Layers className="h-3.5 w-3.5 text-sky-500 shrink-0" />
-                    <p
-                      className="flex-1 min-w-0 text-xs font-semibold text-sky-700 uppercase tracking-wide"
-                      style={mono}
-                    >
-                      {module.title}
-                    </p>
+                    <Layers className="h-3.5 w-3.5 text-sky-500 shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className="text-xs font-semibold text-sky-700 uppercase tracking-wide leading-relaxed line-clamp-2 break-words"
+                        style={mono}
+                      >
+                        {module.title}
+                      </p>
+                      <p className="mt-0.5 text-[11px] text-sky-500/70 normal-case">
+                        {module.recordings.length} lesson
+                        {module.recordings.length === 1 ? "" : "s"}
+                        {module.notes?.length > 0 &&
+                          ` · ${module.notes.length} note${
+                            module.notes.length === 1 ? "" : "s"
+                          }`}
+                        {module.attachments?.length > 0 &&
+                          ` · ${module.attachments.length} file${
+                            module.attachments.length === 1 ? "" : "s"
+                          }`}
+                      </p>
+                    </div>
                     <ChevronDown
-                      className={`h-4 w-4 text-sky-500 shrink-0 transition-transform duration-200 ${
+                      className={`h-4 w-4 text-sky-500 shrink-0 mt-0.5 transition-transform duration-200 ${
                         isExpanded ? "rotate-180" : ""
                       }`}
                     />
@@ -501,6 +587,30 @@ const StudentRecordings = () => {
                           );
                         })}
                       </ul>
+
+                      {/* NEW: read-only notes for this module */}
+                      {module.notes?.length > 0 && (
+                        <div className="border-t border-slate-100 bg-slate-50">
+                          <div className="px-4 py-2 flex items-center gap-2">
+                            <BookOpen className="w-4 h-4 text-sky-600" />
+                            <span
+                              className="text-xs font-semibold uppercase text-slate-500"
+                              style={mono}
+                            >
+                              Notes
+                            </span>
+                            <span className="text-[10px] text-slate-400">
+                              ({module.notes.length})
+                            </span>
+                          </div>
+                          <div className="pb-2 px-2 space-y-0.5">
+                            {module.notes.map((note) => (
+                              <StudentNoteItem key={note.id} note={note} />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       {module.attachments?.length > 0 && (
                         <div className="border-t border-slate-100 bg-slate-50">
                           <div className="px-4 py-2 flex items-center gap-2">
@@ -510,6 +620,9 @@ const StudentRecordings = () => {
                               style={mono}
                             >
                               Attachments
+                            </span>
+                            <span className="text-[10px] text-slate-400">
+                              ({module.attachments.length})
                             </span>
                           </div>
 

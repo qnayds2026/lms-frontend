@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../../api/axios";
 import {
@@ -11,7 +11,10 @@ import {
   Loader2,
   ArrowLeft,
   GripVertical,
+  NotebookText,
+  ChevronDown,
 } from "lucide-react";
+import ModuleNotes from "../../components/notes/ModuleNotes";
 
 const display = { fontFamily: "'Space Grotesk', sans-serif" };
 const mono = { fontFamily: "'JetBrains Mono', monospace" };
@@ -239,6 +242,22 @@ const InstructorManageModules = () => {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
+  // Notes — same pattern used on the admin recordings page
+  const [openNotes, setOpenNotes] = useState(new Set());
+  const toggleNotes = (moduleId) => {
+    setOpenNotes((prev) => {
+      const next = new Set(prev);
+      if (next.has(moduleId)) {
+        next.delete(moduleId);
+      } else {
+        next.add(moduleId);
+      }
+      return next;
+    });
+  };
+  const [noteCounts, setNoteCounts] = useState({});
+  const moduleNotesRefs = useRef({});
+
   // GET /modules/course/:courseId
   const fetchModules = async () => {
     try {
@@ -379,56 +398,115 @@ const InstructorManageModules = () => {
         </div>
       ) : (
         <div className="space-y-3">
-          {modules.map((mod, index) => (
-            <div
-              key={mod.id}
-              className="group bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 hover:border-sky-200 hover:shadow-md hover:shadow-slate-200/50 transition-all duration-200 flex items-start sm:items-center gap-4"
-            >
-              <GripVertical className="hidden sm:block w-4 h-4 text-slate-300 shrink-0 mt-1 sm:mt-0" />
-
-              <span
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-700 text-sm font-semibold"
-                style={display}
+          {modules.map((mod, index) => {
+            const notesOpen = openNotes.has(mod.id);
+            return (
+              <div
+                key={mod.id}
+                className="group bg-white border border-slate-200 rounded-2xl hover:border-sky-200 hover:shadow-md hover:shadow-slate-200/50 transition-all duration-200"
               >
-                {mod.order ?? index + 1}
-              </span>
+                <div className="flex items-start sm:items-center gap-4 p-4 sm:p-5">
+                  <GripVertical className="hidden sm:block w-4 h-4 text-slate-300 shrink-0" />
 
-              <div className="min-w-0 flex-1">
-                <h3 className="font-semibold text-slate-900 text-sm sm:text-base leading-snug wrap-break-words">
-                  {mod.title}
-                </h3>
-                {mod.description && (
-                  <p className="mt-1 text-xs sm:text-sm text-slate-500 leading-relaxed line-clamp-2 wrap-break-words">
-                    {mod.description}
-                  </p>
-                )}
+                  <span
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-700 text-sm font-semibold"
+                    style={display}
+                  >
+                    {mod.order ?? index + 1}
+                  </span>
+
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-slate-900 text-sm sm:text-base leading-snug wrap-break-words">
+                      {mod.title}
+                    </h3>
+                    {mod.description && (
+                      <p className="mt-1 text-xs sm:text-sm text-slate-500 leading-relaxed line-clamp-2 wrap-break-words">
+                        {mod.description}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => openEditModal(mod)}
+                      title="Edit module"
+                      className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => setDeleteTarget(mod)}
+                      title="Delete module"
+                      className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Notes — context-aware: opens the add form directly when the
+                    module has no notes yet, otherwise toggles the panel */}
+                <div className="px-4 sm:px-5 pb-4 sm:pb-5 -mt-1">
+                  <button
+                    onClick={() => {
+                      const count = noteCounts[mod.id];
+                      if (count === 0) {
+                        setOpenNotes((prev) => new Set(prev).add(mod.id));
+                        moduleNotesRefs.current[mod.id]?.openAdd();
+                      } else {
+                        toggleNotes(mod.id);
+                      }
+                    }}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                      notesOpen
+                        ? "bg-sky-600 text-white"
+                        : "bg-white text-sky-700 border border-sky-200 hover:bg-sky-50"
+                    }`}
+                  >
+                    <NotebookText className="h-3.5 w-3.5" />
+                    Notes
+                    {noteCounts[mod.id] !== undefined && (
+                      <span
+                        className={`inline-flex items-center justify-center min-w-[1.1rem] h-[1.1rem] px-1 rounded-full text-[10px] ${
+                          notesOpen
+                            ? "bg-white/25 text-white"
+                            : noteCounts[mod.id] === 0
+                              ? "bg-amber-100 text-amber-700"
+                              : "bg-sky-100 text-sky-700"
+                        }`}
+                      >
+                        {noteCounts[mod.id]}
+                      </span>
+                    )}
+                    {noteCounts[mod.id] === 0 ? (
+                      <Plus className="h-3.5 w-3.5" />
+                    ) : (
+                      <ChevronDown
+                        className={`h-3.5 w-3.5 transition-transform ${
+                          notesOpen ? "rotate-180" : ""
+                        }`}
+                      />
+                    )}
+                  </button>
+
+                  {/* Always mounted (just hidden when collapsed) so counts load
+                      immediately and the quick-add ref is always ready */}
+                  <div className={`mt-3 ${notesOpen ? "" : "hidden"}`}>
+                    <ModuleNotes
+                      ref={(el) => {
+                        moduleNotesRefs.current[mod.id] = el;
+                      }}
+                      moduleId={mod.id}
+                      editable
+                      onCountChange={(count) =>
+                        setNoteCounts((prev) => ({ ...prev, [mod.id]: count }))
+                      }
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <Link
-                  to={`/instructor/modules/${mod.id}/attachments`}
-                  className="px-3 py-1.5 text-xs font-medium bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition"
-                >
-                  📎 Attachments
-                </Link>
-
-                <button
-                  onClick={() => openEditModal(mod)}
-                  title="Edit module"
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition"
-                >
-                  <Pencil className="w-4 h-4" />
-                </button>
-
-                <button
-                  onClick={() => setDeleteTarget(mod)}
-                  title="Delete module"
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
