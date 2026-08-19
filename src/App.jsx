@@ -36,6 +36,9 @@ import CourseDetail from "./pages/CourseDetails";
 import ActivateAccount from "./pages/ActivateAccount";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import StudentCertificates from "./pages/students/studentCertificates";
+import StudentCertificateView from "./pages/students/StudentCertificateView";
+import CertificateVerification from "./pages/students/CertificateVerification";
 const App = () => {
   return (
     <Router>
@@ -53,6 +56,8 @@ const App = () => {
           <Route path="notifications" element={<Notifications />} />
           <Route path="live-classes" element={<StudentLiveClasses />} />
           <Route path="recordings/:courseId" element={<StudentRecordings />} />
+          <Route path="certificates" element={<StudentCertificates />} />
+          <Route path="certificates/:id" element={<StudentCertificateView />} />
         </Route>
         {/* Instructor */}
         <Route path="/instructor" element={<InstructorLayout />}>
@@ -99,6 +104,10 @@ const App = () => {
           />
         </Route>
         {/* Auth pages rendered standalone, without the public Navbar/Footer */}
+        <Route
+          path="/verify-certificate/:verificationCode"
+          element={<CertificateVerification />}
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/activate-account" element={<ActivateAccount />} />

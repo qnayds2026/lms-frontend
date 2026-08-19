@@ -518,7 +518,7 @@ const StudentRecordings = () => {
                     <Layers className="h-3.5 w-3.5 text-sky-500 shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
                       <p
-                        className="text-xs font-semibold text-sky-700 uppercase tracking-wide leading-relaxed line-clamp-2 break-words"
+                        className="text-xs font-semibold text-sky-700 uppercase tracking-wide leading-relaxed line-clamp-2 wrap-break-words"
                         style={mono}
                       >
                         {module.title}
