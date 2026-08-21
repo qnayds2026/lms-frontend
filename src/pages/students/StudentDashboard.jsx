@@ -76,6 +76,12 @@ const ACTIONS = [
     primary: false,
     path: "/student/notifications",
   },
+  {
+    label: "Certificates",
+    icon: Star,
+    primary: false,
+    path: "/student/certificates",
+  },
 ];
 
 function getGreeting() {
@@ -126,7 +132,10 @@ function parseInlineBold(text) {
 function FormattedText({ text, className = "" }) {
   if (!text) return null;
 
-  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  const lines = text
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
   const blocks = [];
   let currentList = null;
 
@@ -169,7 +178,10 @@ function FormattedText({ text, className = "" }) {
           return (
             <ul key={i} className="mt-2 space-y-1.5">
               {block.items.map((item, j) => (
-                <li key={j} className="flex items-start gap-2 text-sm text-slate-600">
+                <li
+                  key={j}
+                  className="flex items-start gap-2 text-sm text-slate-600"
+                >
                   <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
                   <span>{parseInlineBold(item)}</span>
                 </li>
@@ -178,7 +190,10 @@ function FormattedText({ text, className = "" }) {
           );
         }
         return (
-          <p key={i} className="mt-2 first:mt-0 text-sm text-slate-600 leading-relaxed">
+          <p
+            key={i}
+            className="mt-2 first:mt-0 text-sm text-slate-600 leading-relaxed"
+          >
             {parseInlineBold(block.content)}
           </p>
         );
@@ -207,7 +222,7 @@ function CourseDetailsModal({ courseId, onClose, onEnroll }) {
           setError(
             err.response?.status === 404
               ? "Course not found"
-              : err.message || "Failed to load course"
+              : err.message || "Failed to load course",
           );
         }
       })
