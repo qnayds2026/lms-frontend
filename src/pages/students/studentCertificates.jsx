@@ -151,7 +151,7 @@ const StudentCertificates = () => {
               </p>
 
               <Link
-                to="/student/courses"
+                to="/student/dashboard"
                 className="mt-6 inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700"
               >
                 Explore My Courses
