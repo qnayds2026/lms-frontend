@@ -18,13 +18,17 @@ import {
   Link as LinkIcon,
 } from "lucide-react";
 import api from "../../api/axios";
+import CourseProgress from "../../components/student/CourseProgress";
 
 const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');`;
 
 const display = { fontFamily: "'Space Grotesk', sans-serif" };
 const mono = { fontFamily: "'JetBrains Mono', monospace" };
 
-// --- NEW: star rating input (click to set, hover to preview) ---
+// ======================================================
+// STAR RATING
+// ======================================================
+
 function StarRatingInput({ value, onChange, size = "h-6 w-6" }) {
   const [hovered, setHovered] = useState(0);
 
@@ -52,7 +56,11 @@ function StarRatingInput({ value, onChange, size = "h-6 w-6" }) {
   );
 }
 
-// --- NEW: reviews & ratings section for the course ---
+// ======================================================
+// REVIEWS
+// IMPORTANT: Progress has been removed from here.
+// ======================================================
+
 function ReviewsSection({ courseId }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -63,9 +71,12 @@ function ReviewsSection({ courseId }) {
 
   const fetchReviews = async () => {
     setLoading(true);
+
     try {
       const res = await api.get(`/reviews/course/${courseId}`);
+
       setData(res.data);
+
       if (res.data.myReview) {
         setMyRating(res.data.myReview.rating);
         setMyComment(res.data.myReview.comment || "");
@@ -78,40 +89,51 @@ function ReviewsSection({ courseId }) {
   };
 
   useEffect(() => {
-    if (courseId) fetchReviews();
+    if (courseId) {
+      fetchReviews();
+    }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (myRating < 1) {
       setError("Please select a star rating.");
       return;
     }
+
     setError("");
     setSaving(true);
+
     try {
       await api.post("/reviews", {
         courseId,
         rating: myRating,
         comment: myComment,
       });
+
       await fetchReviews();
     } catch (err) {
-      setError(err?.response?.data?.error || "Failed to save your review.");
+      setError(
+        err?.response?.data?.error ||
+          "Failed to save your review."
+      );
     } finally {
       setSaving(false);
     }
   };
 
   const otherReviews = (data?.reviews || []).filter(
-    (r) => r.id !== data?.myReview?.id,
+    (r) => r.id !== data?.myReview?.id
   );
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
       <div className="flex items-center gap-2">
         <MessageSquare className="h-4 w-4 text-sky-600" />
+
         <h2 className="text-sm font-semibold text-slate-900">
           Reviews &amp; Ratings
         </h2>
@@ -121,14 +143,17 @@ function ReviewsSection({ courseId }) {
         <div className="mt-4 h-16 bg-slate-50 rounded-lg animate-pulse" />
       ) : (
         <>
-          {/* Average rating summary */}
+          {/* Average rating */}
           <div className="mt-4 flex items-center gap-3">
             <span
               className="text-3xl font-semibold text-slate-900"
               style={display}
             >
-              {data?.totalReviews > 0 ? data.averageRating.toFixed(1) : "—"}
+              {data?.totalReviews > 0
+                ? data.averageRating.toFixed(1)
+                : "—"}
             </span>
+
             <div>
               <div className="flex">
                 {[...Array(5)].map((_, i) => (
@@ -142,6 +167,7 @@ function ReviewsSection({ courseId }) {
                   />
                 ))}
               </div>
+
               <p className="text-xs text-slate-400 mt-0.5">
                 {data?.totalReviews || 0} review
                 {data?.totalReviews === 1 ? "" : "s"}
@@ -149,7 +175,7 @@ function ReviewsSection({ courseId }) {
             </div>
           </div>
 
-          {/* Your review form */}
+          {/* Review form */}
           <form
             onSubmit={handleSubmit}
             className="mt-5 pt-5 border-t border-slate-100"
@@ -158,11 +184,18 @@ function ReviewsSection({ courseId }) {
               className="text-xs font-semibold text-slate-500 uppercase tracking-wide"
               style={mono}
             >
-              {data?.myReview ? "Edit your review" : "Rate this course"}
+              {data?.myReview
+                ? "Edit your review"
+                : "Rate this course"}
             </p>
+
             <div className="mt-2.5">
-              <StarRatingInput value={myRating} onChange={setMyRating} />
+              <StarRatingInput
+                value={myRating}
+                onChange={setMyRating}
+              />
             </div>
+
             <textarea
               value={myComment}
               onChange={(e) => setMyComment(e.target.value)}
@@ -170,7 +203,13 @@ function ReviewsSection({ courseId }) {
               rows={3}
               className="mt-3 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
             />
-            {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+
+            {error && (
+              <p className="mt-2 text-xs text-red-600">
+                {error}
+              </p>
+            )}
+
             <button
               type="submit"
               disabled={saving}
@@ -179,24 +218,27 @@ function ReviewsSection({ courseId }) {
               {saving
                 ? "Saving..."
                 : data?.myReview
-                  ? "Update Review"
-                  : "Submit Review"}
+                ? "Update Review"
+                : "Submit Review"}
             </button>
           </form>
 
-          {/* Other students' reviews */}
+          {/* Other reviews */}
           {otherReviews.length > 0 && (
             <div className="mt-6 pt-5 border-t border-slate-100 space-y-4">
               {otherReviews.map((review) => (
                 <div key={review.id} className="flex gap-3">
                   <div className="h-8 w-8 shrink-0 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center text-xs font-semibold">
-                    {review.student?.name?.[0]?.toUpperCase() || "?"}
+                    {review.student?.name?.[0]?.toUpperCase() ||
+                      "?"}
                   </div>
+
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="text-sm font-medium text-slate-900">
                         {review.student?.name || "Student"}
                       </p>
+
                       <div className="flex">
                         {[...Array(5)].map((_, i) => (
                           <Star
@@ -210,6 +252,7 @@ function ReviewsSection({ courseId }) {
                         ))}
                       </div>
                     </div>
+
                     {review.comment && (
                       <p className="mt-1 text-sm text-slate-600">
                         {review.comment}
@@ -226,7 +269,10 @@ function ReviewsSection({ courseId }) {
   );
 }
 
-// --- NEW: a single read-only note, expandable to show description + links ---
+// ======================================================
+// STUDENT NOTE
+// ======================================================
+
 function StudentNoteItem({ note }) {
   const [open, setOpen] = useState(false);
 
@@ -237,9 +283,11 @@ function StudentNoteItem({ note }) {
         className="w-full flex items-center gap-2 px-2 py-2 text-left hover:bg-sky-50 rounded-lg transition-colors"
       >
         <FileText className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+
         <span className="flex-1 min-w-0 text-sm text-slate-700 truncate">
           {note.title}
         </span>
+
         <ChevronDown
           className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${
             open ? "rotate-180" : ""
@@ -254,6 +302,7 @@ function StudentNoteItem({ note }) {
               {note.description}
             </p>
           )}
+
           {(note.referenceVideo || note.referenceLink) && (
             <div className="flex flex-wrap gap-3">
               {note.referenceVideo && (
@@ -267,6 +316,7 @@ function StudentNoteItem({ note }) {
                   Reference video
                 </a>
               )}
+
               {note.referenceLink && (
                 <a
                   href={note.referenceLink}
@@ -286,14 +336,87 @@ function StudentNoteItem({ note }) {
   );
 }
 
+// ======================================================
+// STUDENT RECORDINGS
+// ======================================================
+
 const StudentRecordings = () => {
   const { courseId } = useParams();
+
   const [course, setCourse] = useState(null);
   const [modules, setModules] = useState([]);
-  const [activeRecordingId, setActiveRecordingId] = useState(null);
-  const [expandedModuleIds, setExpandedModuleIds] = useState(new Set());
+
+  // Progress state belongs here
+  const [courseProgress, setCourseProgress] = useState(null);
+  const [completingRecording, setCompletingRecording] =
+    useState(false);
+
+  const [activeRecordingId, setActiveRecordingId] =
+    useState(null);
+
+  const [expandedModuleIds, setExpandedModuleIds] =
+    useState(new Set());
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // ======================================================
+  // GET COURSE PROGRESS
+  // ======================================================
+
+  const fetchCourseProgress = async () => {
+    if (!courseId) return;
+
+    try {
+      const res = await api.get(
+        `/progress/course/${courseId}`
+      );
+
+      setCourseProgress(res.data?.data || null);
+    } catch (err) {
+      console.error(
+        "Failed to fetch course progress:",
+        err
+      );
+    }
+  };
+
+  // ======================================================
+  // COMPLETE ACTIVE RECORDING
+  // ======================================================
+
+  const handleCompleteRecording = async () => {
+    if (!activeRecordingId || completingRecording) {
+      return;
+    }
+
+    try {
+      setCompletingRecording(true);
+
+      await api.post(
+        `/progress/recordings/${activeRecordingId}/complete`
+      );
+
+      // Refresh overall course progress
+      await fetchCourseProgress();
+    } catch (err) {
+      console.error(
+        "Failed to complete recording:",
+        err
+      );
+
+      alert(
+        err?.response?.data?.message ||
+          "Failed to update lesson progress."
+      );
+    } finally {
+      setCompletingRecording(false);
+    }
+  };
+
+  // ======================================================
+  // FETCH COURSE + RECORDINGS
+  // ======================================================
 
   useEffect(() => {
     async function fetchCourseAndRecordings() {
@@ -301,11 +424,16 @@ const StudentRecordings = () => {
       setError("");
 
       try {
-        const courseRes = await api.get(`/courses/${courseId}`);
+        const courseRes = await api.get(
+          `/courses/${courseId}`
+        );
+
         const courseData = courseRes.data;
+
         setCourse(courseData);
 
-        const moduleList = courseData?.modules || [];
+        const moduleList =
+          courseData?.modules || [];
 
         const moduleData = await Promise.all(
           moduleList.map(async (m) => {
@@ -315,14 +443,25 @@ const StudentRecordings = () => {
               .catch(() => []);
 
             const attachments = await api
-              .get(`/module-attachments/module/${m.id}`)
-              .then((res) => res.data?.data || res.data || [])
+              .get(
+                `/module-attachments/module/${m.id}`
+              )
+              .then(
+                (res) =>
+                  res.data?.data ||
+                  res.data ||
+                  []
+              )
               .catch(() => []);
 
-            // NEW: read-only notes for this module
             const notes = await api
               .get(`/notes/module/${m.id}`)
-              .then((res) => res.data?.data || res.data || [])
+              .then(
+                (res) =>
+                  res.data?.data ||
+                  res.data ||
+                  []
+              )
               .catch(() => []);
 
             return {
@@ -332,67 +471,115 @@ const StudentRecordings = () => {
               attachments,
               notes,
             };
-          }),
+          })
         );
 
         setModules(moduleData);
 
-        const firstModuleWithRecording = moduleData.find(
-          (m) => m.recordings.length > 0,
-        );
-        const firstRecording = firstModuleWithRecording?.recordings[0];
+        const firstModuleWithRecording =
+          moduleData.find(
+            (m) => m.recordings.length > 0
+          );
+
+        const firstRecording =
+          firstModuleWithRecording?.recordings[0];
 
         if (firstRecording) {
-          setActiveRecordingId(firstRecording.id);
+          setActiveRecordingId(
+            firstRecording.id
+          );
         }
+
         if (firstModuleWithRecording) {
-          setExpandedModuleIds(new Set([firstModuleWithRecording.id]));
+          setExpandedModuleIds(
+            new Set([
+              firstModuleWithRecording.id,
+            ])
+          );
         }
       } catch (err) {
         setError(
           err?.response?.data?.message ||
-            "Failed to load this course. Please try again.",
+            "Failed to load this course. Please try again."
         );
       } finally {
         setLoading(false);
       }
     }
 
-    fetchCourseAndRecordings();
+    if (courseId) {
+      fetchCourseAndRecordings();
+    }
   }, [courseId]);
 
+  // ======================================================
+  // FETCH PROGRESS
+  // ======================================================
+
+  useEffect(() => {
+    if (courseId) {
+      fetchCourseProgress();
+    }
+  }, [courseId]);
+
+  // ======================================================
+  // RECORDINGS
+  // ======================================================
+
   const allRecordings = modules.flatMap((m) =>
-    m.recordings.map((r) => ({ ...r, moduleTitle: m.title })),
+    m.recordings.map((r) => ({
+      ...r,
+      moduleTitle: m.title,
+    }))
   );
 
-  const activeRecording = allRecordings.find((r) => r.id === activeRecordingId);
-  const activeIndex = allRecordings.findIndex(
-    (r) => r.id === activeRecordingId,
+  const activeRecording = allRecordings.find(
+    (r) => r.id === activeRecordingId
   );
+
+  const activeIndex = allRecordings.findIndex(
+    (r) => r.id === activeRecordingId
+  );
+
+  // ======================================================
+  // MODULE TOGGLE
+  // ======================================================
 
   const toggleModule = (moduleId) => {
     setExpandedModuleIds((prev) => {
       const next = new Set(prev);
+
       if (next.has(moduleId)) {
         next.delete(moduleId);
       } else {
         next.add(moduleId);
       }
+
       return next;
     });
   };
+
+  // ======================================================
+  // LOADING
+  // ======================================================
 
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 p-6 md:p-10 animate-pulse">
         <div className="h-8 w-64 bg-slate-200 rounded-lg" />
+
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 mt-8">
           <div className="aspect-video bg-slate-200 rounded-2xl" />
+
           <div className="bg-white border border-slate-200 rounded-2xl h-96" />
         </div>
       </div>
     );
   }
+
+  // ======================================================
+  // ERROR
+  // ======================================================
 
   if (error) {
     return (
@@ -404,10 +591,15 @@ const StudentRecordings = () => {
     );
   }
 
+  // ======================================================
+  // UI
+  // ======================================================
+
   return (
     <div className="min-h-screen bg-slate-50 p-4 sm:p-6 md:p-10">
       <style>{FONT_IMPORT}</style>
 
+      {/* Back */}
       <Link
         to="/student/my-courses"
         className="inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-sky-600 transition-colors mb-4"
@@ -416,20 +608,42 @@ const StudentRecordings = () => {
         Back to My Courses
       </Link>
 
+      {/* ==================================================
+          COURSE PROGRESS
+      ================================================== */}
+
+    
+
+      {/* ==================================================
+          MAIN CONTENT
+      ================================================== */}
+
       <div
-        className={`grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 [grid-template-areas:'video'_'content'_'reviews'] lg:[grid-template-areas:'video_content'_'reviews_content']`}
+        className="
+          grid
+          grid-cols-1
+          lg:grid-cols-[1fr_340px]
+          gap-6
+          [grid-template-areas:'video'_'content'_'reviews']
+          lg:[grid-template-areas:'video_content'_'reviews_content']
+        "
       >
-        {/* Video area — YouTube / Drive embed */}
+        {/* ==================================================
+            VIDEO AREA
+        ================================================== */}
+
         <div className="[grid-area:video]">
           <div className="relative w-full overflow-hidden rounded-xl sm:rounded-2xl bg-slate-900 shadow-lg shadow-slate-200">
             <div
               className={
-                activeRecording?.provider === "GOOGLE_DRIVE"
+                activeRecording?.provider ===
+                "GOOGLE_DRIVE"
                   ? "w-full"
                   : "aspect-video w-full"
               }
               style={
-                activeRecording?.provider === "GOOGLE_DRIVE"
+                activeRecording?.provider ===
+                "GOOGLE_DRIVE"
                   ? { paddingBottom: "68%" }
                   : undefined
               }
@@ -451,7 +665,9 @@ const StudentRecordings = () => {
                   No video available for this lesson yet.
                 </div>
               )}
-              {activeRecording?.provider === "GOOGLE_DRIVE" &&
+
+              {activeRecording?.provider ===
+                "GOOGLE_DRIVE" &&
                 activeRecording?.embedUrl && (
                   <div
                     className="absolute top-0 right-0 h-14 w-16 z-10"
@@ -461,61 +677,148 @@ const StudentRecordings = () => {
             </div>
           </div>
 
+          {/* ==================================================
+              LESSON INFORMATION
+          ================================================== */}
+
           <div className="mt-5">
             <span
               className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-sky-200 bg-sky-50 text-sky-700 text-xs font-medium"
               style={mono}
             >
-              <Terminal className="w-3.5 h-3.5" /> {course?.title}
+              <Terminal className="w-3.5 h-3.5" />
+              {course?.title}
             </span>
+
             <h1
               className="mt-3 text-2xl font-semibold text-slate-900"
               style={display}
             >
-              {activeRecording?.title || "Select a lesson"}
+              {activeRecording?.title ||
+                "Select a lesson"}
             </h1>
+
             {activeRecording?.description && (
               <p className="mt-2 text-sm text-slate-500">
                 {activeRecording.description}
               </p>
             )}
+
             {allRecordings.length > 0 && (
-              <p className="mt-2 text-xs text-slate-400" style={mono}>
-                Lesson {activeIndex + 1} of {allRecordings.length}
+              <p
+                className="mt-2 text-xs text-slate-400"
+                style={mono}
+              >
+                Lesson {activeIndex + 1} of{" "}
+                {allRecordings.length}
                 {activeRecording?.moduleTitle
                   ? ` · ${activeRecording.moduleTitle}`
                   : ""}
               </p>
             )}
           </div>
+
+     
+          {/* ==================================================
+              MARK LESSON COMPLETE
+          ================================================== */}
+
+          {activeRecording && (
+            <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-50">
+                  <CheckCircle2 className="h-5 w-5 text-sky-600" />
+                </div>
+
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">
+                    Finished this lesson?
+                  </p>
+
+                  <p className="mt-1 text-xs text-slate-500">
+                    Mark this lesson as completed to
+                    update your course progress.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleCompleteRecording}
+                disabled={completingRecording}
+                className="
+                  inline-flex
+                  items-center
+                  justify-center
+                  gap-2
+                  rounded-xl
+                  bg-sky-600
+                  px-5
+                  py-2.5
+                  text-sm
+                  font-semibold
+                  text-white
+                  transition
+                  hover:bg-sky-700
+                  disabled:cursor-not-allowed
+                  disabled:opacity-60
+                  shrink-0
+                "
+              >
+                <CheckCircle2 className="h-4 w-4" />
+
+                {completingRecording
+                  ? "Saving..."
+                  : "Mark as Complete"}
+              </button>
+            </div>
+          )}
+                       <CourseProgress
+        progress={courseProgress}
+        modules={modules}
+      />
+
         </div>
 
-        {/* Course content sidebar */}
+        
+
+        {/* ==================================================
+            COURSE CONTENT SIDEBAR
+        ================================================== */}
+
         <aside className="rounded-2xl border border-slate-200 bg-white h-fit shadow-sm overflow-hidden">
           <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-4">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-50">
               <Layers className="w-4 h-4 text-sky-600" />
             </span>
+
             <div className="min-w-0">
               <h2 className="text-sm font-semibold text-slate-900">
                 Course content
               </h2>
+
               <p className="text-xs text-slate-500 mt-0.5 truncate">
-                {allRecordings.length} lessons across {modules.length} modules
+                {allRecordings.length} lessons across{" "}
+                {modules.length} modules
               </p>
             </div>
           </div>
 
           <div className="sm:max-h-[70vh] sm:overflow-y-auto">
             {modules.map((module) => {
-              const isExpanded = expandedModuleIds.has(module.id);
+              const isExpanded =
+                expandedModuleIds.has(module.id);
+
               return (
                 <div key={module.id}>
                   <button
-                    onClick={() => toggleModule(module.id)}
+                    onClick={() =>
+                      toggleModule(module.id)
+                    }
                     className="w-full flex items-start gap-2 px-4 py-3 bg-sky-50/70 border-y border-sky-100 border-l-[3px] border-l-sky-500 text-left"
                   >
                     <Layers className="h-3.5 w-3.5 text-sky-500 shrink-0 mt-0.5" />
+
                     <div className="flex-1 min-w-0">
                       <p
                         className="text-xs font-semibold text-sky-700 uppercase tracking-wide leading-relaxed line-clamp-2 wrap-break-words"
@@ -523,25 +826,36 @@ const StudentRecordings = () => {
                       >
                         {module.title}
                       </p>
+
                       <p className="mt-0.5 text-[11px] text-sky-500/70 normal-case">
                         {module.recordings.length} lesson
-                        {module.recordings.length === 1 ? "" : "s"}
+                        {module.recordings.length === 1
+                          ? ""
+                          : "s"}
                         {module.notes?.length > 0 &&
                           ` · ${module.notes.length} note${
-                            module.notes.length === 1 ? "" : "s"
+                            module.notes.length === 1
+                              ? ""
+                              : "s"
                           }`}
                         {module.attachments?.length > 0 &&
                           ` · ${module.attachments.length} file${
-                            module.attachments.length === 1 ? "" : "s"
+                            module.attachments.length === 1
+                              ? ""
+                              : "s"
                           }`}
                       </p>
                     </div>
+
                     <ChevronDown
                       className={`h-4 w-4 text-sky-500 shrink-0 mt-0.5 transition-transform duration-200 ${
-                        isExpanded ? "rotate-180" : ""
+                        isExpanded
+                          ? "rotate-180"
+                          : ""
                       }`}
                     />
                   </button>
+
                   {isExpanded && (
                     <>
                       <ul className="divide-y divide-slate-100">
@@ -551,120 +865,161 @@ const StudentRecordings = () => {
                             No lessons published yet
                           </li>
                         )}
-                        {module.recordings.map((rec) => {
-                          const isActive = rec.id === activeRecordingId;
-                          return (
-                            <li key={rec.id}>
-                              <button
-                                onClick={() => setActiveRecordingId(rec.id)}
-                                className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
-                                  isActive ? "bg-sky-50" : "hover:bg-sky-50"
-                                }`}
-                              >
-                                {isActive ? (
-                                  <CheckCircle2 className="h-5 w-5 text-sky-600 shrink-0" />
-                                ) : (
-                                  <Circle className="h-5 w-5 text-slate-300 shrink-0" />
-                                )}
-                                <div className="flex-1 min-w-0">
-                                  <p
-                                    className={`text-sm truncate ${
-                                      isActive
-                                        ? "font-semibold text-slate-900"
-                                        : "text-slate-700"
-                                    }`}
-                                  >
-                                    {rec.title}
-                                  </p>
-                                  {rec.duration && (
-                                    <p className="text-xs text-slate-400">
-                                      {rec.duration}
-                                    </p>
+
+                        {module.recordings.map(
+                          (rec) => {
+                            const isActive =
+                              rec.id ===
+                              activeRecordingId;
+
+                            return (
+                              <li key={rec.id}>
+                                <button
+                                  onClick={() =>
+                                    setActiveRecordingId(
+                                      rec.id
+                                    )
+                                  }
+                                  className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
+                                    isActive
+                                      ? "bg-sky-50"
+                                      : "hover:bg-sky-50"
+                                  }`}
+                                >
+                                  {isActive ? (
+                                    <CheckCircle2 className="h-5 w-5 text-sky-600 shrink-0" />
+                                  ) : (
+                                    <Circle className="h-5 w-5 text-slate-300 shrink-0" />
                                   )}
-                                </div>
-                              </button>
-                            </li>
-                          );
-                        })}
+
+                                  <div className="flex-1 min-w-0">
+                                    <p
+                                      className={`text-sm truncate ${
+                                        isActive
+                                          ? "font-semibold text-slate-900"
+                                          : "text-slate-700"
+                                      }`}
+                                    >
+                                      {rec.title}
+                                    </p>
+
+                                    {rec.duration && (
+                                      <p className="text-xs text-slate-400">
+                                        {rec.duration}
+                                      </p>
+                                    )}
+                                  </div>
+                                </button>
+                              </li>
+                            );
+                          }
+                        )}
                       </ul>
 
-                      {/* NEW: read-only notes for this module */}
+                      {/* NOTES */}
                       {module.notes?.length > 0 && (
                         <div className="border-t border-slate-100 bg-slate-50">
                           <div className="px-4 py-2 flex items-center gap-2">
                             <BookOpen className="w-4 h-4 text-sky-600" />
+
                             <span
                               className="text-xs font-semibold uppercase text-slate-500"
                               style={mono}
                             >
                               Notes
                             </span>
+
                             <span className="text-[10px] text-slate-400">
                               ({module.notes.length})
                             </span>
                           </div>
+
                           <div className="pb-2 px-2 space-y-0.5">
-                            {module.notes.map((note) => (
-                              <StudentNoteItem key={note.id} note={note} />
-                            ))}
+                            {module.notes.map(
+                              (note) => (
+                                <StudentNoteItem
+                                  key={note.id}
+                                  note={note}
+                                />
+                              )
+                            )}
                           </div>
                         </div>
                       )}
 
+                      {/* ATTACHMENTS */}
                       {module.attachments?.length > 0 && (
                         <div className="border-t border-slate-100 bg-slate-50">
                           <div className="px-4 py-2 flex items-center gap-2">
                             <Paperclip className="w-4 h-4 text-purple-600" />
+
                             <span
                               className="text-xs font-semibold uppercase text-slate-500"
                               style={mono}
                             >
                               Attachments
                             </span>
+
                             <span className="text-[10px] text-slate-400">
                               ({module.attachments.length})
                             </span>
                           </div>
 
                           <div className="pb-2">
-                            {module.attachments.map((attachment) => (
-                              <a
-                                key={attachment.id}
-                                href={attachment.fileUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                download
-                                className="flex items-center justify-between px-4 py-3 hover:bg-purple-50 transition group"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs text-purple-600 font-medium hidden sm:block">
-                                    Download
-                                  </span>
-                                  <Download className="w-4 h-4 text-purple-600 group-hover:scale-110 transition-transform" />
-                                </div>
-                              </a>
-                            ))}
+                            {module.attachments.map(
+                              (attachment) => (
+                                <a
+                                  key={attachment.id}
+                                  href={
+                                    attachment.fileUrl
+                                  }
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  download
+                                  className="flex items-center justify-between px-4 py-3 hover:bg-purple-50 transition group"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs text-purple-600 font-medium hidden sm:block">
+                                      Download
+                                    </span>
+
+                                    <Download className="w-4 h-4 text-purple-600 group-hover:scale-110 transition-transform" />
+                                  </div>
+                                </a>
+                              )
+                            )}
                           </div>
                         </div>
                       )}
                     </>
                   )}
+                  
                 </div>
+                
               );
             })}
+      
 
             {modules.length === 0 && (
               <p className="text-sm text-slate-400 text-center py-8">
-                No modules available for this course yet.
+                No modules available for this
+                course yet.
               </p>
             )}
           </div>
         </aside>
 
-        {/* Reviews & ratings */}
+        
+
+        {/* ==================================================
+            REVIEWS — KEPT
+        ================================================== */}
+
         {courseId && (
           <div className="[grid-area:reviews]">
-            <ReviewsSection courseId={courseId} />
+            <ReviewsSection
+              courseId={courseId}
+            />
           </div>
         )}
       </div>
