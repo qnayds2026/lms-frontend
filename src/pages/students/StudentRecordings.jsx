@@ -69,6 +69,9 @@ function ReviewsSection({ courseId }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  // Dropdown open / close
+  const [isOpen, setIsOpen] = useState(false);
+
   const fetchReviews = async () => {
     setLoading(true);
 
@@ -130,140 +133,357 @@ function ReviewsSection({ courseId }) {
   );
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
-      <div className="flex items-center gap-2">
-        <MessageSquare className="h-4 w-4 text-sky-600" />
+    <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
 
-        <h2 className="text-sm font-semibold text-slate-900">
-          Reviews &amp; Ratings
-        </h2>
-      </div>
+      {/* ==================================================
+          COMPACT REVIEW HEADER
+      ================================================== */}
 
-      {loading ? (
-        <div className="mt-4 h-16 bg-slate-50 rounded-lg animate-pulse" />
-      ) : (
-        <>
-          {/* Average rating */}
-          <div className="mt-4 flex items-center gap-3">
-            <span
-              className="text-3xl font-semibold text-slate-900"
-              style={display}
-            >
-              {data?.totalReviews > 0
-                ? data.averageRating.toFixed(1)
-                : "—"}
-            </span>
+      <button
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="w-full px-5 py-4 sm:px-6 sm:py-5 text-left hover:bg-slate-50 transition-colors"
+      >
+        <div className="flex items-center justify-between gap-4">
 
-            <div>
+          {/* Left */}
+          <div className="flex items-center gap-3 min-w-0">
+
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-50">
+              <MessageSquare className="h-5 w-5 text-sky-600" />
+            </div>
+
+            <div className="min-w-0">
+              <h2 className="text-sm font-semibold text-slate-900">
+                Reviews &amp; Ratings
+              </h2>
+
+              <p className="mt-0.5 text-xs text-slate-400">
+                {data?.totalReviews || 0} student review
+                {data?.totalReviews === 1 ? "" : "s"}
+              </p>
+            </div>
+          </div>
+
+          {/* Right */}
+          <div className="flex items-center gap-3 shrink-0">
+
+            {/* Rating */}
+            <div className="hidden sm:flex items-center gap-2">
+
+              <span
+                className="text-lg font-semibold text-slate-900"
+                style={display}
+              >
+                {data?.totalReviews > 0
+                  ? data.averageRating.toFixed(1)
+                  : "—"}
+              </span>
+
               <div className="flex">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className={`w-4 h-4 ${
-                      i < Math.round(data?.averageRating || 0)
+                    className={`h-3.5 w-3.5 ${
+                      i <
+                      Math.round(
+                        data?.averageRating || 0
+                      )
                         ? "fill-amber-400 text-amber-400"
                         : "text-slate-200"
                     }`}
                   />
                 ))}
               </div>
-
-              <p className="text-xs text-slate-400 mt-0.5">
-                {data?.totalReviews || 0} review
-                {data?.totalReviews === 1 ? "" : "s"}
-              </p>
             </div>
+
+            {/* View */}
+            <span className="hidden sm:block text-xs font-medium text-sky-600">
+              {isOpen ? "Hide" : "View"}
+            </span>
+
+            <ChevronDown
+              className={`h-5 w-5 text-slate-400 transition-transform duration-200 ${
+                isOpen ? "rotate-180" : ""
+              }`}
+            />
+          </div>
+        </div>
+
+        {/* Mobile rating */}
+        <div className="mt-3 flex items-center gap-2 sm:hidden">
+          <span
+            className="text-lg font-semibold text-slate-900"
+            style={display}
+          >
+            {data?.totalReviews > 0
+              ? data.averageRating.toFixed(1)
+              : "—"}
+          </span>
+
+          <div className="flex">
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                className={`h-3.5 w-3.5 ${
+                  i <
+                  Math.round(
+                    data?.averageRating || 0
+                  )
+                    ? "fill-amber-400 text-amber-400"
+                    : "text-slate-200"
+                }`}
+              />
+            ))}
           </div>
 
-          {/* Review form */}
-          <form
-            onSubmit={handleSubmit}
-            className="mt-5 pt-5 border-t border-slate-100"
-          >
-            <p
-              className="text-xs font-semibold text-slate-500 uppercase tracking-wide"
-              style={mono}
-            >
-              {data?.myReview
-                ? "Edit your review"
-                : "Rate this course"}
-            </p>
+          <span className="text-xs text-slate-400">
+            {data?.totalReviews || 0} reviews
+          </span>
+        </div>
+      </button>
 
-            <div className="mt-2.5">
-              <StarRatingInput
-                value={myRating}
-                onChange={setMyRating}
-              />
-            </div>
+      {/* ==================================================
+          EXPANDED CONTENT
+      ================================================== */}
 
-            <textarea
-              value={myComment}
-              onChange={(e) => setMyComment(e.target.value)}
-              placeholder="Share your thoughts about this course (optional)"
-              rows={3}
-              className="mt-3 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
-            />
+      {isOpen && (
+        <div className="border-t border-slate-100 px-5 py-5 sm:px-6">
 
-            {error && (
-              <p className="mt-2 text-xs text-red-600">
-                {error}
-              </p>
-            )}
+          {loading ? (
+            <div className="h-24 bg-slate-50 rounded-xl animate-pulse" />
+          ) : (
+            <>
+              {/* ================================
+                  RATING SUMMARY
+              ================================= */}
 
-            <button
-              type="submit"
-              disabled={saving}
-              className="mt-3 inline-flex items-center px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-700 disabled:opacity-60 text-white text-sm font-medium transition-colors"
-            >
-              {saving
-                ? "Saving..."
-                : data?.myReview
-                ? "Update Review"
-                : "Submit Review"}
-            </button>
-          </form>
+              <div className="flex items-center gap-4">
 
-          {/* Other reviews */}
-          {otherReviews.length > 0 && (
-            <div className="mt-6 pt-5 border-t border-slate-100 space-y-4">
-              {otherReviews.map((review) => (
-                <div key={review.id} className="flex gap-3">
-                  <div className="h-8 w-8 shrink-0 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center text-xs font-semibold">
-                    {review.student?.name?.[0]?.toUpperCase() ||
-                      "?"}
+                <div className="text-center">
+                  <div
+                    className="text-4xl font-bold text-slate-900"
+                    style={display}
+                  >
+                    {data?.totalReviews > 0
+                      ? data.averageRating.toFixed(1)
+                      : "—"}
                   </div>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-medium text-slate-900">
-                        {review.student?.name || "Student"}
-                      </p>
+                  <div className="flex justify-center mt-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-4 w-4 ${
+                          i <
+                          Math.round(
+                            data?.averageRating || 0
+                          )
+                            ? "fill-amber-400 text-amber-400"
+                            : "text-slate-200"
+                        }`}
+                      />
+                    ))}
+                  </div>
 
-                      <div className="flex">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-3 h-3 ${
-                              i < review.rating
-                                ? "fill-amber-400 text-amber-400"
-                                : "text-slate-200"
-                            }`}
-                          />
-                        ))}
+                  <p className="mt-1 text-xs text-slate-400">
+                    {data?.totalReviews || 0} reviews
+                  </p>
+                </div>
+
+              </div>
+
+              {/* ================================
+                  REVIEW FORM
+              ================================= */}
+
+              <form
+                onSubmit={handleSubmit}
+                className="mt-6 pt-5 border-t border-slate-100"
+              >
+
+                <p
+                  className="text-xs font-semibold text-slate-500 uppercase tracking-wide"
+                  style={mono}
+                >
+                  {data?.myReview
+                    ? "Edit your review"
+                    : "Rate this course"}
+                </p>
+
+                {/* Stars */}
+                <div className="mt-3">
+                  <StarRatingInput
+                    value={myRating}
+                    onChange={setMyRating}
+                  />
+                </div>
+
+                {/* Comment */}
+                <textarea
+                  value={myComment}
+                  onChange={(e) =>
+                    setMyComment(e.target.value)
+                  }
+                  placeholder="Share your thoughts about this course..."
+                  rows={3}
+                  className="
+                    mt-3
+                    w-full
+                    rounded-xl
+                    border
+                    border-slate-200
+                    px-3
+                    py-2.5
+                    text-sm
+                    outline-none
+                    resize-none
+                    transition
+                    focus:border-sky-500
+                    focus:ring-4
+                    focus:ring-sky-100
+                  "
+                />
+
+                {/* Error */}
+                {error && (
+                  <p className="mt-2 text-xs text-red-600">
+                    {error}
+                  </p>
+                )}
+
+                {/* Submit */}
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="
+                    mt-3
+                    inline-flex
+                    items-center
+                    justify-center
+                    rounded-xl
+                    bg-sky-600
+                    px-5
+                    py-2.5
+                    text-sm
+                    font-semibold
+                    text-white
+                    transition
+                    hover:bg-sky-700
+                    disabled:opacity-60
+                    disabled:cursor-not-allowed
+                  "
+                >
+                  {saving
+                    ? "Saving..."
+                    : data?.myReview
+                    ? "Update Review"
+                    : "Submit Review"}
+                </button>
+              </form>
+
+              {/* ================================
+                  OTHER REVIEWS
+              ================================= */}
+
+              {otherReviews.length > 0 && (
+                <div className="mt-6 pt-5 border-t border-slate-100">
+
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold text-slate-900">
+                      Student Reviews
+                    </h3>
+
+                    <span className="text-xs text-slate-400">
+                      {otherReviews.length} reviews
+                    </span>
+                  </div>
+
+                  <div className="space-y-4">
+
+                    {otherReviews.map((review) => (
+                      <div
+                        key={review.id}
+                        className="flex gap-3"
+                      >
+
+                        {/* Avatar */}
+                        <div className="
+                          h-9
+                          w-9
+                          shrink-0
+                          rounded-full
+                          bg-sky-100
+                          text-sky-700
+                          flex
+                          items-center
+                          justify-center
+                          text-xs
+                          font-semibold
+                        ">
+                          {review.student?.name?.[0]?.toUpperCase() ||
+                            "?"}
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+
+                          <div className="flex items-center gap-2 flex-wrap">
+
+                            <p className="text-sm font-semibold text-slate-900">
+                              {review.student?.name ||
+                                "Student"}
+                            </p>
+
+                            <div className="flex">
+                              {[...Array(5)].map(
+                                (_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`h-3.5 w-3.5 ${
+                                      i < review.rating
+                                        ? "fill-amber-400 text-amber-400"
+                                        : "text-slate-200"
+                                    }`}
+                                  />
+                                )
+                              )}
+                            </div>
+
+                          </div>
+
+                          {review.comment && (
+                            <p className="mt-1 text-sm leading-relaxed text-slate-600">
+                              {review.comment}
+                            </p>
+                          )}
+
+                        </div>
                       </div>
-                    </div>
+                    ))}
 
-                    {review.comment && (
-                      <p className="mt-1 text-sm text-slate-600">
-                        {review.comment}
-                      </p>
-                    )}
                   </div>
                 </div>
-              ))}
-            </div>
+              )}
+
+              {/* No Reviews */}
+              {otherReviews.length === 0 &&
+                !data?.myReview && (
+                  <div className="mt-5 rounded-xl bg-slate-50 px-4 py-5 text-center">
+                    <MessageSquare className="mx-auto h-5 w-5 text-slate-300" />
+
+                    <p className="mt-2 text-sm text-slate-500">
+                      No reviews yet.
+                    </p>
+
+                    <p className="mt-1 text-xs text-slate-400">
+                      Be the first student to review this course.
+                    </p>
+                  </div>
+                )}
+            </>
           )}
-        </>
+        </div>
       )}
     </div>
   );
