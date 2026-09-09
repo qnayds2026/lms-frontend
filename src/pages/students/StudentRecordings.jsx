@@ -842,17 +842,15 @@ const StudentRecordings = () => {
         className="
           grid
           grid-cols-1
-          lg:grid-cols-[1fr_340px]
+          lg:grid-cols-[minmax(0,1fr)_340px]
           gap-6
-          [grid-template-areas:'video'_'content'_'reviews']
-          lg:[grid-template-areas:'video_content'_'reviews_content']
         "
       >
         {/* ==================================================
             VIDEO AREA
         ================================================== */}
 
-        <div className="[grid-area:video]">
+        <div className="min-w-0">
           <div className="relative w-full overflow-hidden rounded-xl sm:rounded-2xl bg-slate-900 shadow-lg shadow-slate-200">
             <div
               className={
@@ -1006,7 +1004,17 @@ const StudentRecordings = () => {
             COURSE CONTENT SIDEBAR
         ================================================== */}
 
-        <aside className="rounded-2xl border border-slate-200 bg-white h-fit shadow-sm overflow-hidden">
+        <aside
+          className="
+            min-w-0
+            rounded-2xl
+            border border-slate-200
+            bg-white
+            h-fit
+            shadow-sm
+            overflow-hidden
+          "
+        >
           <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-4">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-50">
               <Layers className="w-4 h-4 text-sky-600" />
@@ -1236,7 +1244,7 @@ const StudentRecordings = () => {
         ================================================== */}
 
         {courseId && (
-          <div className="[grid-area:reviews]">
+          <div className="min-w-0">
             <ReviewsSection
               courseId={courseId}
             />
