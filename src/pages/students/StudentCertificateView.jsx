@@ -3,7 +3,6 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
   Award,
-  CalendarDays,
   CheckCircle2,
   Loader2,
   Printer,
@@ -12,199 +11,62 @@ import {
 } from "lucide-react";
 import api from "../../api/axios";
 
+// ========================================
+// LOGOS
+// ========================================
+
+import QNAYDS_LOGO from "../../assets/logo/QNAYDS_LOGO.png";
+import AICTE_LOGO from "../../assets/logo/AICTE_LOGO.png";
+import MSME_LOGO from "../../assets/logo/MSME_LOGO.png";
+
+// ========================================
+// FONT
+// ========================================
+
 const FONT_IMPORT = `
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Tangerine:wght@400;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&display=swap');
 `;
-
-const certificateFont = {
-  fontFamily: "'Cormorant Garamond', serif",
-};
-
-const scriptFont = {
-  fontFamily: "'Tangerine', cursive",
-};
 
 const bodyFont = {
   fontFamily: "'Inter', sans-serif",
 };
 
-const monoFont = {
-  fontFamily: "'JetBrains Mono', monospace",
+// ========================================
+// BRAND COLORS
+// ========================================
+
+const navy = "#172a46";
+const gold = "#c49a45";
+const certificateBackground = "#f7f7f5";
+
+// ========================================
+// SIGNATORY
+// ========================================
+
+const SIGNATORY = {
+  name: "",
+  designation: "Name / Designation, Qnayds LLP",
 };
 
-// Gold palette
-const gold = {
-  text: "#a3791f",
-  line: "#c9a24b",
-  soft: "#f6ecd2",
-};
-
-// Certificate signatories
-const SIGNATORIES = {
-  director: "Sawad",
-  directorTitle: "Course Director",
-  mentor: "Adil",
-  mentorTitle: "Mentor",
-};
-
 // ========================================
-// DIAMOND BORDER
+// CORNER BLOCK
 // ========================================
 
-function DiamondBorderStrip({ flip = false }) {
-  const count = 46;
-
-  return (
-    <div
-      className={`pointer-events-none absolute left-0 right-0 flex h-4 items-center justify-center gap-[3px] overflow-hidden sm:h-5 ${
-        flip ? "bottom-0" : "top-0"
-      }`}
-    >
-      {Array.from({ length: count }).map((_, i) => (
-        <span
-          key={i}
-          className="h-2 w-2 shrink-0 rotate-45 sm:h-2.5 sm:w-2.5"
-          style={{
-            background:
-              i % 2 === 0
-                ? "linear-gradient(135deg, #d4b25a, #a3791f)"
-                : "linear-gradient(135deg, #e9d296, #c9a24b)",
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-// ========================================
-// CORNER BRACKET
-// ========================================
-
-function CornerBracket({ position }) {
-  const base = "absolute h-6 w-6 sm:h-8 sm:w-8";
-
-  const pos = {
-    "top-left": "left-3 top-3 border-l-2 border-t-2 sm:left-4 sm:top-4",
-    "top-right": "right-3 top-3 border-r-2 border-t-2 sm:right-4 sm:top-4",
-    "bottom-left":
-      "bottom-3 left-3 border-b-2 border-l-2 sm:bottom-4 sm:left-4",
-    "bottom-right":
-      "bottom-3 right-3 border-b-2 border-r-2 sm:bottom-4 sm:right-4",
+function CornerBlock({ position }) {
+  const positions = {
+    "top-left": "left-8 top-8 sm:left-10 sm:top-10 md:left-12 md:top-12",
+    "top-right": "right-8 top-8 sm:right-10 sm:top-10 md:right-12 md:top-12",
+    "bottom-left": "bottom-8 left-8 sm:bottom-10 sm:left-10 md:bottom-12 md:left-12",
+    "bottom-right": "bottom-8 right-8 sm:right-10 sm:bottom-10 md:right-12 md:bottom-12",
   };
 
   return (
     <div
-      className={`${base} ${pos[position]} pointer-events-none`}
-      style={{ borderColor: gold.line }}
+      className={`pointer-events-none absolute z-20 h-4 w-4 sm:h-6 sm:w-6 md:h-8 md:w-8 ${positions[position]}`}
+      style={{
+        backgroundColor: gold,
+      }}
     />
-  );
-}
-
-// ========================================
-// CERTIFICATE SEAL + QR
-// ========================================
-// Uses a real award/seal image if you provide one at /award-seal.png, and
-// automatically falls back to the CSS-built medallion + ribbon (with the
-// verification QR code) if that file isn't present. Drop your actual award
-// graphic in as public/award-seal.png and it takes over automatically.
-
-function SealRibbon({ verificationUrl }) {
-  const [imageFailed, setImageFailed] = useState(false);
-
-  if (!imageFailed) {
-    return (
-      <div className="pointer-events-none relative mx-auto flex h-24 items-center justify-center sm:h-28">
-        <img
-          src="/award-seal.png"
-          alt="Certificate seal"
-          className="h-full w-auto object-contain"
-          onError={() => setImageFailed(true)}
-        />
-      </div>
-    );
-  }
-
-  const qrSrc = verificationUrl
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=0&data=${encodeURIComponent(
-        verificationUrl,
-      )}`
-    : null;
-
-  return (
-    <div className="pointer-events-none relative mx-auto h-24 w-16 sm:h-28 sm:w-20">
-      {/* Ribbon tails */}
-
-      <div
-        className="absolute left-1/2 top-8 h-14 w-6 -translate-x-[13px] -rotate-[18deg] sm:h-16"
-        style={{ background: "linear-gradient(180deg,#cbd5e1,#94a3b8)" }}
-      />
-
-      <div
-        className="absolute left-1/2 top-8 h-14 w-6 translate-x-[7px] rotate-[18deg] sm:h-16"
-        style={{ background: "linear-gradient(180deg,#e2e8f0,#cbd5e1)" }}
-      />
-
-      {/* Medallion */}
-
-      <div
-        className="absolute left-1/2 top-0 h-16 w-16 -translate-x-1/2 rounded-full sm:h-20 sm:w-20"
-        style={{
-          background: "linear-gradient(135deg,#e9d296,#a3791f)",
-          boxShadow: "0 3px 10px rgba(163,121,31,0.35)",
-        }}
-      >
-        <div
-          className="absolute inset-[6px] rounded-full border"
-          style={{ borderColor: "rgba(255,255,255,0.6)" }}
-        />
-
-        {/* Ring text */}
-
-        <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full">
-          <defs>
-            <path
-              id="sealRingPath"
-              d="M 50,50 m -37,0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0"
-            />
-          </defs>
-
-          <text
-            fill="rgba(255,255,255,0.85)"
-            fontSize="7.5"
-            letterSpacing="2"
-            style={monoFont}
-          >
-            <textPath href="#sealRingPath" startOffset="2%">
-              QNAYDS ACADEMY • VERIFIED •
-            </textPath>
-          </text>
-        </svg>
-
-        {/* QR */}
-
-        <div className="absolute inset-0 flex items-center justify-center">
-          {qrSrc ? (
-            <img
-              src={qrSrc}
-              alt="Scan to verify"
-              className="h-8 w-8 rounded-[3px] bg-white p-0.5 sm:h-10 sm:w-10"
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-
-                if (e.currentTarget.nextSibling) {
-                  e.currentTarget.nextSibling.style.display = "block";
-                }
-              }}
-            />
-          ) : null}
-
-          <Award
-            className="h-6 w-6 text-white/90 sm:h-7 sm:w-7"
-            style={{ display: qrSrc ? "none" : "block" }}
-          />
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -237,7 +99,10 @@ const StudentCertificateView = () => {
       } catch (err) {
         console.error("Failed to load certificate:", err);
 
-        setError(err?.response?.data?.message || "Failed to load certificate.");
+        setError(
+          err?.response?.data?.message ||
+            "Failed to load certificate.",
+        );
       } finally {
         setLoading(false);
       }
@@ -254,14 +119,25 @@ const StudentCertificateView = () => {
 
   useEffect(() => {
     const handleAfterPrint = () => {
-      document.body.classList.remove("certificate-printing");
+      document.body.classList.remove(
+        "certificate-printing",
+      );
     };
 
-    window.addEventListener("afterprint", handleAfterPrint);
+    window.addEventListener(
+      "afterprint",
+      handleAfterPrint,
+    );
 
     return () => {
-      window.removeEventListener("afterprint", handleAfterPrint);
-      document.body.classList.remove("certificate-printing");
+      window.removeEventListener(
+        "afterprint",
+        handleAfterPrint,
+      );
+
+      document.body.classList.remove(
+        "certificate-printing",
+      );
     };
   }, []);
 
@@ -270,13 +146,16 @@ const StudentCertificateView = () => {
   // ========================================
 
   const formatDate = (date) => {
-    if (!date) return "—";
+    if (!date) return "[DD/MM/YYYY]";
 
-    return new Date(date).toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    });
+    return new Date(date).toLocaleDateString(
+      "en-GB",
+      {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      },
+    );
   };
 
   // ========================================
@@ -296,30 +175,39 @@ const StudentCertificateView = () => {
   // ========================================
 
   const handleShareCertificate = async () => {
-    const verificationUrl = getVerificationUrl();
+    const verificationUrl =
+      getVerificationUrl();
 
     if (!verificationUrl) {
       return;
     }
 
-    const courseName = certificate?.course?.title || "Course Completion";
-    const studentName = certificate?.student?.name || "Student";
+    const courseName =
+      certificate?.course?.title ||
+      "Course Completion";
+
+    const studentName =
+      certificate?.student?.name ||
+      "Student";
 
     const shareData = {
       title: `Certificate - ${courseName}`,
-      text: `${studentName} successfully completed ${courseName} at QNAYDS Academy.`,
+      text: `${studentName} successfully completed ${courseName} at QNAYDS LLP.`,
       url: verificationUrl,
     };
 
     try {
-      // Native share
-      if (navigator.share && typeof navigator.share === "function") {
+      if (
+        navigator.share &&
+        typeof navigator.share === "function"
+      ) {
         await navigator.share(shareData);
         return;
       }
 
-      // Clipboard fallback
-      await navigator.clipboard.writeText(verificationUrl);
+      await navigator.clipboard.writeText(
+        verificationUrl,
+      );
 
       setCopied(true);
 
@@ -327,16 +215,14 @@ const StudentCertificateView = () => {
         setCopied(false);
       }, 2000);
     } catch (err) {
-      // User cancelled native share
       if (err?.name === "AbortError") {
         return;
       }
 
-      console.error("Certificate sharing failed:", err);
-
-      // Final fallback
       try {
-        await navigator.clipboard.writeText(verificationUrl);
+        await navigator.clipboard.writeText(
+          verificationUrl,
+        );
 
         setCopied(true);
 
@@ -344,7 +230,10 @@ const StudentCertificateView = () => {
           setCopied(false);
         }, 2000);
       } catch (clipboardError) {
-        console.error("Clipboard fallback failed:", clipboardError);
+        console.error(
+          "Clipboard fallback failed:",
+          clipboardError,
+        );
       }
     }
   };
@@ -354,11 +243,13 @@ const StudentCertificateView = () => {
   // ========================================
 
   const handlePrint = () => {
-    document.body.classList.add("certificate-printing");
+    document.body.classList.add(
+      "certificate-printing",
+    );
 
     setTimeout(() => {
       window.print();
-    }, 100);
+    }, 1000);
   };
 
   // ========================================
@@ -375,7 +266,10 @@ const StudentCertificateView = () => {
 
         <div className="flex flex-col items-center gap-3 text-slate-500">
           <Loader2 className="h-7 w-7 animate-spin text-sky-600" />
-          <p className="text-sm">Loading certificate...</p>
+
+          <p className="text-sm">
+            Loading certificate...
+          </p>
         </div>
       </div>
     );
@@ -403,14 +297,18 @@ const StudentCertificateView = () => {
           </h2>
 
           <p className="mt-2 text-sm leading-6 text-slate-500">
-            {error || "This certificate could not be found."}
+            {error ||
+              "This certificate could not be found."}
           </p>
 
           <button
-            onClick={() => navigate("/student/certificates")}
+            onClick={() =>
+              navigate("/student/certificates")
+            }
             className="mt-6 inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700"
           >
             <ArrowLeft className="h-4 w-4" />
+
             Back to Certificates
           </button>
         </div>
@@ -418,18 +316,35 @@ const StudentCertificateView = () => {
     );
   }
 
-  const verificationUrl = getVerificationUrl();
+  // ========================================
+  // CERTIFICATE DATA
+  // ========================================
+
+  const verificationUrl =
+    getVerificationUrl();
+
+  const startDate =
+    certificate.startDate ||
+    certificate.course?.startDate;
+
+  const endDate =
+    certificate.endDate ||
+    certificate.course?.endDate;
+
+  // ========================================
+  // MAIN UI
+  // ========================================
 
   return (
     <div
-      className="certificate-page min-h-screen bg-slate-50 px-4 py-6 md:px-8 md:py-10"
+      className="certificate-page min-h-screen bg-slate-100 px-3 py-5 md:px-8 md:py-10"
       style={bodyFont}
     >
       <style>{`
         ${FONT_IMPORT}
 
         /* ========================================
-           PRINT
+           PRINT SETTINGS
         ======================================== */
 
         @media print {
@@ -444,8 +359,8 @@ const StudentCertificateView = () => {
             height: 210mm !important;
             margin: 0 !important;
             padding: 0 !important;
-            background: white !important;
             overflow: hidden !important;
+            background: white !important;
           }
 
           body.certificate-printing * {
@@ -461,21 +376,24 @@ const StudentCertificateView = () => {
             position: absolute !important;
             left: 0 !important;
             top: 0 !important;
+
             width: 297mm !important;
             height: 210mm !important;
+
             min-height: 210mm !important;
+
             margin: 0 !important;
             padding: 0 !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
+
             background: white !important;
           }
 
           body.certificate-printing .certificate-wrapper {
             width: 297mm !important;
             height: 210mm !important;
+
             max-width: none !important;
+
             margin: 0 !important;
             padding: 0 !important;
           }
@@ -483,12 +401,12 @@ const StudentCertificateView = () => {
           body.certificate-printing .certificate {
             width: 297mm !important;
             height: 210mm !important;
-            min-height: 0 !important;
-            max-height: 210mm !important;
+
             margin: 0 !important;
-            border-radius: 0 !important;
+
             box-shadow: none !important;
-            overflow: hidden !important;
+
+            border-radius: 0 !important;
           }
 
           body.certificate-printing .no-print {
@@ -507,6 +425,7 @@ const StudentCertificateView = () => {
           className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:border-sky-200 hover:text-sky-600"
         >
           <ArrowLeft className="h-4 w-4" />
+
           My Certificates
         </Link>
 
@@ -515,220 +434,313 @@ const StudentCertificateView = () => {
           className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700"
         >
           <Printer className="h-4 w-4" />
+
           Print / Save PDF
         </button>
       </div>
 
       {/* ========================================
-          CERTIFICATE
+          CERTIFICATE WRAPPER
       ======================================== */}
 
-      <div className="certificate-wrapper mx-auto w-full max-w-6xl">
+      <div className="certificate-wrapper mx-auto w-full max-w-[1400px]">
         <div
-          className="certificate relative overflow-hidden rounded-2xl shadow-2xl shadow-slate-300/40"
-          style={{ background: "#faf8f2" }}
+          className="certificate relative overflow-hidden shadow-2xl"
+          style={{
+            aspectRatio: "297 / 210",
+            background: certificateBackground,
+          }}
         >
-          <DiamondBorderStrip />
-          <DiamondBorderStrip flip />
-
-          {/* Border */}
-
-          <div
-            className="pointer-events-none absolute inset-3 rounded-xl border"
-            style={{ borderColor: gold.line }}
-          />
-
-          <div className="pointer-events-none absolute inset-5 rounded-lg border border-slate-200" />
-
-          <CornerBracket position="top-left" />
-          <CornerBracket position="top-right" />
-          <CornerBracket position="bottom-left" />
-          <CornerBracket position="bottom-right" />
-
-          {/* Decorative circles */}
+          {/* ========================================
+              OUTER NAVY BORDER
+          ======================================== */}
 
           <div
-            className="pointer-events-none absolute -left-20 -top-20 h-56 w-56 rounded-full"
-            style={{ background: gold.soft, opacity: 0.5 }}
+             className="absolute inset-8 border-[3px] sm:inset-10 md:inset-12"
+            style={{
+              borderColor: navy,
+            }}
           />
+
+          {/* ========================================
+              INNER GOLD BORDER
+          ======================================== */}
 
           <div
-            className="pointer-events-none absolute -bottom-24 -right-20 h-64 w-64 rounded-full"
-            style={{ background: gold.soft, opacity: 0.5 }}
-          />
+            className="pointer-events-none absolute inset-12 border sm:inset-14 md:inset-16"
+            style={{
+              borderColor: gold,
+            }}
+          />   
+        {/* GOLD CORNERS */}
 
-          <div className="relative flex h-full min-h-0 flex-col justify-between px-8 py-10 sm:px-14 md:px-20 md:py-12">
-            {/* TOP */}
+          <CornerBlock position="top-left" />
+          <CornerBlock position="top-right" />
+          <CornerBlock position="bottom-left" />
+          <CornerBlock position="bottom-right" />
 
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-center gap-3">
+
+
+
+
+          {/* ========================================
+              CERTIFICATE CONTENT
+          ======================================== */}
+
+          <div className="relative z-10 flex h-full flex-col px-[7%] py-[5%]">
+
+            {/* ========================================
+                TOP HEADER
+            ======================================== */}
+
+            <div className="grid grid-cols-3 items-start">
+
+              {/* LEFT LOGOS */}
+
+              <div className="flex flex-col items-start gap-2 pt-10">
+
+                {/* MSME */}
+
                 <img
-                  src="/badges/msme.png"
+                  src={MSME_LOGO}
                   alt="MSME"
-                  className="h-12 w-auto sm:h-14"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
+                  className="h-[56px] w-auto object-contain sm:h-[68px] md:h-[96px]"
                 />
 
+                {/* AICTE UNDER MSME */}
+
                 <img
-                  src="/badges/aicte.png"
+                  src={AICTE_LOGO}
                   alt="AICTE"
-                  className="h-12 w-auto sm:h-14"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
+                  className="ml-2 h-[52px] w-auto object-contain sm:h-[64px] md:h-[88px]"
+                />
+              </div>
+
+              {/* CENTER BRAND */}
+
+              <div className="pt-18 text-center">
+
+                <h1
+                  className="text-lg font-extrabold tracking-[0.08em] sm:text-2xl md:text-4xl"
+                  style={{
+                    color: navy,
+                  }}
+                >
+                  QNAYDS LLP
+                </h1>
+
+                <p className="mt-1 text-[7px] font-bold tracking-wide text-slate-500 sm:text-[10px] md:text-sm">
+                  CYBERSECURITY TRAINING INSTITUTE
+                </p>
+
+                <div
+                  className="mx-auto mt-2 h-px w-20 sm:w-32 md:w-48"
+                  style={{
+                    backgroundColor: gold,
                   }}
                 />
               </div>
 
-              <img
-                src="/qnayds-logo.png"
-                alt="QNAYDS"
-                className="h-12 w-auto sm:h-14"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
-              />
+              {/* RIGHT QNAYDS LOGO */}
+
+              <div className="flex justify-end pt-10">
+
+                <img
+                  src={QNAYDS_LOGO}
+                  alt="QNAYDS"
+                  className="h-[70px] w-auto object-contain sm:h-[90px] md:h-[135px]"
+
+                />
+              </div>
             </div>
 
-            {/* HEADER */}
+            {/* ========================================
+                TITLE
+            ======================================== */}
 
-            <div className="text-center">
-              <h1
-                className="text-5xl italic text-slate-900 sm:text-6xl md:text-7xl"
-                style={{ ...certificateFont, color: "#232323" }}
+            <div className="relative -top-7 mt-[1%] text-center">
+
+              <h2
+                className="font-extrabold tracking-wide"
+                style={{
+                  color: navy,
+                  fontSize: "clamp(20px, 3.6vw, 62px)",
+                }}
               >
-                Certificate
-              </h1>
+                CERTIFICATE OF COMPLETION
+              </h2>
+            </div>
+
+            {/* ========================================
+                MAIN CERTIFICATE CONTENT
+            ======================================== */}
+
+            <div className="relative -top-7 flex flex-1 flex-col items-center justify-start pt-[1%] text-center">
+
+              {/* PRESENTED TO */}
 
               <p
-                className="-mt-3 text-3xl sm:-mt-4 sm:text-4xl md:text-5xl"
-                style={{ ...scriptFont, color: gold.text }}
+                className="italic text-slate-600"
+                style={{
+                  fontSize:
+                    "clamp(10px, 1.4vw, 23px)",
+                }}
               >
-                of Completion
+                This certificate is proudly presented to
               </p>
+
+              {/* STUDENT NAME */}
 
               <div
-                className="mx-auto mt-3 h-px w-24"
-                style={{ background: gold.line }}
-              />
+                className="mt-[2%] border-b px-5 pb-1"
+                style={{
+                  borderColor: gold,
+                  minWidth: "38%",
+                }}
+              >
+                <h3
+                  className="font-bold"
+                  style={{
+                    color: navy,
+                    fontSize:
+                      "clamp(18px, 3vw, 52px)",
+                  }}
+                >
+                  {certificate.student?.name ||
+                    "[Student Name]"}
+                </h3>
+              </div>
+
+              {/* COMPLETING COURSE */}
 
               <p
-                className="mt-4 text-xs font-medium tracking-[0.35em] text-slate-500"
-                style={bodyFont}
+                className="mt-[2%] text-slate-600"
+                style={{
+                  fontSize:
+                    "clamp(10px, 1.3vw, 21px)",
+                }}
               >
-                PROUDLY PRESENTED TO
+                for successfully completing the course
+              </p>
+
+              {/* COURSE NAME */}
+
+              <h4
+                className="mt-[1%] font-bold"
+                style={{
+                  color: navy,
+                  fontSize:
+                    "clamp(12px, 1.8vw, 30px)",
+                }}
+              >
+                {certificate.course?.title ||
+                  "[Course Name]"}
+              </h4>
+
+              {/* COURSE DATES */}
+
+              <p
+                className="mx-auto mt-[1.5%] max-w-[62%] leading-relaxed text-slate-600"
+                style={{
+                  fontSize:
+                    "clamp(9px, 1.2vw, 20px)",
+                }}
+              >
+                conducted between{" "}
+                {startDate
+                  ? formatDate(startDate)
+                  : "[Start Date]"}{" "}
+                and{" "}
+                {endDate
+                  ? formatDate(endDate)
+                  : "[End Date]"},
+                demonstrating dedication,
+                skill, and commitment throughout
+                the program.
               </p>
             </div>
 
-            {/* STUDENT */}
+            {/* ========================================
+                BOTTOM SECTION
+            ======================================== */}
 
-            <div className="py-4 text-center">
-              <h2
-                className="text-4xl font-semibold text-slate-900 sm:text-5xl md:text-6xl"
-                style={certificateFont}
-              >
-                {certificate.student?.name || "Student Name"}
-              </h2>
+            <div className="grid grid-cols-3 items-end pb-[1%]">
 
-              <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-slate-500">
-                has successfully completed the course
-              </p>
+              {/* DATE OF ISSUE */}
 
-              <h3
-                className="mt-1 text-2xl font-semibold sm:text-3xl md:text-4xl"
-                style={{ ...certificateFont, color: gold.text }}
-              >
-                {certificate.course?.title || "Course Name"}
-              </h3>
+              <div className="relative translate-x-30 -translate-y-10 text-left">
 
-              <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-slate-500">
-                {certificate.description ||
-                  "This achievement demonstrates the successful completion of all required learning activities for this course, awarded on behalf of QNAYDS Academy."}
-              </p>
-            </div>
+                <div
+                  className="h-px w-[clamp(100px,12vw,180px)]"
+                  style={{
+                    backgroundColor: "#64748b",
+                  }}
+                />
 
-            {/* SEAL */}
-
-            <SealRibbon verificationUrl={verificationUrl} />
-
-            {/* FOOTER */}
-
-            <div className="mt-4 grid grid-cols-3 items-end gap-3 sm:gap-8">
-              {/* Date */}
-
-              <div className="text-left">
-                <div className="flex items-center gap-1.5 text-slate-500 sm:gap-2">
-                  <CalendarDays className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span className="text-[10px] uppercase tracking-wider sm:text-xs">
-                    Issue Date
-                  </span>
-                </div>
-
-                <p className="mt-1 text-xs font-semibold text-slate-800 sm:text-sm">
-                  {formatDate(certificate.issuedAt)}
+                <p
+                  className="mt-1 text-slate-600"
+                  style={{
+                    fontSize:
+                      "clamp(9px, 1.05vw, 18px)",
+                  }}
+                >
+                  Date of Issue:{" "}
+                  {formatDate(
+                    certificate.issuedAt,
+                  )}
                 </p>
               </div>
 
-              {/* Director */}
+              {/* CERTIFICATE ID */}
 
               <div className="text-center">
+
                 <p
-                  className="text-xl sm:text-3xl"
-                  style={{ ...scriptFont, color: "#1e293b" }}
+                  className="text-slate-500"
+                  style={{
+                    fontSize:
+                      "clamp(8px, 0.95vw, 16px)",
+                  }}
                 >
-                  {SIGNATORIES.director}
-                </p>
-
-                <div
-                  className="mx-auto mt-1 h-px w-20 sm:w-32"
-                  style={{ background: gold.line }}
-                />
-
-                <p className="mt-1.5 text-[9px] font-medium uppercase tracking-wider text-slate-500 sm:text-[11px]">
-                  {SIGNATORIES.directorTitle}
+                  Certificate ID:{" "}
+                  {certificate.certificateNumber ||
+                    "[QN-XXXX-XXXX]"}
                 </p>
               </div>
 
-              {/* Mentor */}
+              {/* SIGNATORY */}
 
-              <div className="text-right">
-                <p
-                  className="text-xl sm:text-3xl"
-                  style={{ ...scriptFont, color: "#1e293b" }}
-                >
-                  {SIGNATORIES.mentor}
-                </p>
+              <div className="relative -translate-x-30 -translate-y-7 text-right">
 
                 <div
-                  className="ml-auto mr-0 mt-1 h-px w-20 sm:w-32"
-                  style={{ background: gold.line }}
+                  className="ml-auto h-px w-[clamp(100px,12vw,180px)]"
+                  style={{
+                    backgroundColor: "#64748b",
+                  }}
                 />
 
-                <p className="mt-1.5 text-[9px] font-medium uppercase tracking-wider text-slate-500 sm:text-[11px]">
-                  {SIGNATORIES.mentorTitle}
+                <p
+                  className="mt-1 font-medium text-slate-600"
+                  style={{
+                    fontSize:
+                      "clamp(9px, 1.05vw, 18px)",
+                  }}
+                >
+                  Authorized Signatory
+                </p>
+
+                <p
+                  className="italic text-slate-500"
+                  style={{
+                    fontSize:
+                      "clamp(8px, 0.85vw, 15px)",
+                  }}
+                >
+                  {SIGNATORY.name
+                    ? `${SIGNATORY.name}, Qnayds LLP`
+                    : SIGNATORY.designation}
                 </p>
               </div>
-            </div>
-
-            {/* CERTIFICATE NUMBER */}
-
-            <div className="mt-6 flex items-center justify-between gap-4">
-              <img
-                src="/badges/startup-india.png"
-                alt="Startup India"
-                className="h-6 w-auto sm:h-7"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
-              />
-
-              <p
-                className="break-all text-right text-[11px] font-medium text-slate-400"
-                style={monoFont}
-              >
-                {certificate.certificateNumber}
-              </p>
             </div>
           </div>
         </div>
@@ -738,10 +750,13 @@ const StudentCertificateView = () => {
           VERIFICATION CARD
       ======================================== */}
 
-      <div className="no-print mx-auto mt-6 max-w-6xl">
+      <div className="no-print mx-auto mt-6 max-w-[1400px]">
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+
           <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+
             <div className="flex items-start gap-3">
+
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50">
                 <ShieldCheck className="h-5 w-5 text-emerald-600" />
               </div>
@@ -752,13 +767,12 @@ const StudentCertificateView = () => {
                 </h3>
 
                 <p className="mt-1 text-xs leading-5 text-slate-500">
-                  Anyone can verify the authenticity of this certificate using
-                  the verification link.
+                  Anyone can verify the authenticity
+                  of this certificate using the
+                  verification link.
                 </p>
               </div>
             </div>
-
-            {/* SHARE BUTTON */}
 
             <button
               onClick={handleShareCertificate}
@@ -780,7 +794,7 @@ const StudentCertificateView = () => {
 
           {verificationUrl && (
             <div className="mt-4 rounded-xl bg-slate-50 px-4 py-3">
-              <p className="break-all text-xs text-slate-500" style={monoFont}>
+              <p className="break-all text-xs text-slate-500">
                 {verificationUrl}
               </p>
             </div>
@@ -788,10 +802,13 @@ const StudentCertificateView = () => {
         </div>
       </div>
 
-      {/* STATUS */}
+      {/* ========================================
+          STATUS
+      ======================================== */}
 
       <div className="no-print mx-auto mt-4 flex max-w-6xl items-center justify-center gap-2 text-xs text-slate-400">
         <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+
         Digitally verifiable certificate
       </div>
     </div>
