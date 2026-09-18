@@ -1,6 +1,11 @@
 import { Trophy, Check, Lock, Flame, Play } from "lucide-react";
 
-const CourseProgress = ({ progress, modules = [] }) => {
+const CourseProgress = ({
+  progress,
+  modules = [],
+  onSelectLevel,
+  activeModuleId,
+}) => {
   if (!progress) return null;
 
   const {
@@ -36,6 +41,8 @@ const CourseProgress = ({ progress, modules = [] }) => {
   });
 
   const currentModule =
+    (activeModuleId &&
+      moduleProgress.find((module) => module.id === activeModuleId)) ||
     moduleProgress.find((module) => !module.isCompleted) ||
     moduleProgress[moduleProgress.length - 1];
 
@@ -117,17 +124,43 @@ const CourseProgress = ({ progress, modules = [] }) => {
               const isLocked =
                 index > 0 && !moduleProgress[index - 1]?.isCompleted;
 
+              const handleLevelClick = () => {
+                if (isLocked) {
+                  alert(
+                    `Level ${module.level} is locked. Complete Level ${module.level - 1} first to unlock this level.`
+                  );
+                } else if (onSelectLevel) {
+                  onSelectLevel(module);
+                }
+              };
+
               return (
                 <div key={module.id} className="flex items-start">
-                  <div className="flex w-28 flex-col items-center text-center sm:w-36">
+                  <button
+                    type="button"
+                    onClick={handleLevelClick}
+                    title={
+                      isLocked
+                        ? `Level ${module.level} is locked. Complete previous level to unlock.`
+                        : `Click to go to Level ${module.level}: ${module.title}`
+                    }
+                    className={[
+                      "flex w-28 flex-col items-center text-center sm:w-36 transition-all p-1.5 rounded-2xl focus:outline-none",
+                      isLocked
+                        ? "cursor-not-allowed opacity-60 hover:opacity-80"
+                        : "cursor-pointer hover:bg-sky-50/70 hover:scale-[1.03] group",
+                    ].join(" ")}
+                  >
                     <div
                       className={[
                         "relative flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-300",
                         module.isCompleted
-                          ? "border-emerald-500 bg-emerald-500 text-white"
+                          ? "border-emerald-500 bg-emerald-500 text-white shadow-sm shadow-emerald-200"
                           : isCurrent
-                            ? "border-sky-500 bg-sky-50 text-sky-600 shadow-sm ring-4 ring-sky-50"
-                            : "border-slate-200 bg-slate-50 text-slate-400",
+                            ? "border-sky-500 bg-sky-50 text-sky-600 shadow-sm ring-4 ring-sky-100"
+                            : isLocked
+                              ? "border-slate-200 bg-slate-100 text-slate-400"
+                              : "border-sky-300 bg-white text-sky-600 group-hover:border-sky-500 group-hover:bg-sky-50",
                       ].join(" ")}
                     >
                       {module.isCompleted ? (
@@ -135,24 +168,31 @@ const CourseProgress = ({ progress, modules = [] }) => {
                       ) : isLocked ? (
                         <Lock className="h-4 w-4" />
                       ) : (
-                        <Play className="h-4 w-4" />
+                        <Play className="h-4 w-4 fill-current ml-0.5" />
                       )}
                     </div>
 
-                    <p
-                      className={[
-                        "mt-2 text-[10px] font-bold uppercase tracking-wider",
-                        module.isCompleted
-                          ? "text-emerald-600"
-                          : isCurrent
-                            ? "text-sky-600"
-                            : "text-slate-400",
-                      ].join(" ")}
-                    >
-                      Level {module.level}
-                    </p>
+                    <div className="mt-2 flex items-center justify-center gap-1">
+                      <p
+                        className={[
+                          "text-[10px] font-bold uppercase tracking-wider",
+                          module.isCompleted
+                            ? "text-emerald-600"
+                            : isCurrent
+                              ? "text-sky-600"
+                              : isLocked
+                                ? "text-slate-400"
+                                : "text-slate-600 group-hover:text-sky-600",
+                        ].join(" ")}
+                      >
+                        Level {module.level}
+                      </p>
+                      {isLocked && (
+                        <Lock className="h-2.5 w-2.5 text-slate-400" />
+                      )}
+                    </div>
 
-                    <p className="mt-1 line-clamp-2 text-xs font-semibold text-slate-700">
+                    <p className="mt-1 line-clamp-2 text-xs font-semibold text-slate-700 group-hover:text-sky-700 transition-colors">
                       {module.title}
                     </p>
 
@@ -184,7 +224,13 @@ const CourseProgress = ({ progress, modules = [] }) => {
                         }}
                       />
                     </div>
-                  </div>
+
+                    {!isLocked && (
+                      <span className="mt-1.5 text-[9px] font-medium text-sky-600 opacity-0 group-hover:opacity-100 transition-opacity bg-sky-100 px-1.5 py-0.5 rounded">
+                        Click to play
+                      </span>
+                    )}
+                  </button>
 
                   {index < moduleProgress.length - 1 && (
                     <div className="mt-5 h-0.5 w-10 bg-slate-200 sm:w-16">

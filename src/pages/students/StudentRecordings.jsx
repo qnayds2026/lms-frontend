@@ -16,6 +16,9 @@ import {
   FileText,
   Video,
   Link as LinkIcon,
+  Play,
+  ArrowRight,
+  ArrowLeft,
 } from "lucide-react";
 import api from "../../api/axios";
 import CourseProgress from "../../components/student/CourseProgress";
@@ -44,11 +47,10 @@ function StarRatingInput({ value, onChange, size = "h-6 w-6" }) {
           className="p-0.5"
         >
           <Star
-            className={`${size} transition-colors ${
-              n <= (hovered || value)
+            className={`${size} transition-colors ${n <= (hovered || value)
                 ? "fill-amber-400 text-amber-400"
                 : "text-slate-200"
-            }`}
+              }`}
           />
         </button>
       ))}
@@ -121,7 +123,7 @@ function ReviewsSection({ courseId }) {
     } catch (err) {
       setError(
         err?.response?.data?.error ||
-          "Failed to save your review."
+        "Failed to save your review."
       );
     } finally {
       setSaving(false);
@@ -184,14 +186,13 @@ function ReviewsSection({ courseId }) {
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className={`h-3.5 w-3.5 ${
-                      i <
-                      Math.round(
-                        data?.averageRating || 0
-                      )
+                    className={`h-3.5 w-3.5 ${i <
+                        Math.round(
+                          data?.averageRating || 0
+                        )
                         ? "fill-amber-400 text-amber-400"
                         : "text-slate-200"
-                    }`}
+                      }`}
                   />
                 ))}
               </div>
@@ -203,9 +204,8 @@ function ReviewsSection({ courseId }) {
             </span>
 
             <ChevronDown
-              className={`h-5 w-5 text-slate-400 transition-transform duration-200 ${
-                isOpen ? "rotate-180" : ""
-              }`}
+              className={`h-5 w-5 text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""
+                }`}
             />
           </div>
         </div>
@@ -225,14 +225,13 @@ function ReviewsSection({ courseId }) {
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
-                className={`h-3.5 w-3.5 ${
-                  i <
-                  Math.round(
-                    data?.averageRating || 0
-                  )
+                className={`h-3.5 w-3.5 ${i <
+                    Math.round(
+                      data?.averageRating || 0
+                    )
                     ? "fill-amber-400 text-amber-400"
                     : "text-slate-200"
-                }`}
+                  }`}
               />
             ))}
           </div>
@@ -274,14 +273,13 @@ function ReviewsSection({ courseId }) {
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        className={`h-4 w-4 ${
-                          i <
-                          Math.round(
-                            data?.averageRating || 0
-                          )
+                        className={`h-4 w-4 ${i <
+                            Math.round(
+                              data?.averageRating || 0
+                            )
                             ? "fill-amber-400 text-amber-400"
                             : "text-slate-200"
-                        }`}
+                          }`}
                       />
                     ))}
                   </div>
@@ -377,8 +375,8 @@ function ReviewsSection({ courseId }) {
                   {saving
                     ? "Saving..."
                     : data?.myReview
-                    ? "Update Review"
-                    : "Submit Review"}
+                      ? "Update Review"
+                      : "Submit Review"}
                 </button>
               </form>
 
@@ -440,11 +438,10 @@ function ReviewsSection({ courseId }) {
                                 (_, i) => (
                                   <Star
                                     key={i}
-                                    className={`h-3.5 w-3.5 ${
-                                      i < review.rating
+                                    className={`h-3.5 w-3.5 ${i < review.rating
                                         ? "fill-amber-400 text-amber-400"
                                         : "text-slate-200"
-                                    }`}
+                                      }`}
                                   />
                                 )
                               )}
@@ -509,9 +506,8 @@ function StudentNoteItem({ note }) {
         </span>
 
         <ChevronDown
-          className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${
-            open ? "rotate-180" : ""
-          }`}
+          className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""
+            }`}
         />
       </button>
 
@@ -602,36 +598,24 @@ const StudentRecordings = () => {
   };
 
   // ======================================================
-  // COMPLETE ACTIVE RECORDING
+  // NATURAL SORTING HELPER
   // ======================================================
 
-  const handleCompleteRecording = async () => {
-    if (!activeRecordingId || completingRecording) {
-      return;
-    }
+  const sortRecordingsNaturally = (recordings) => {
+    return [...recordings].sort((a, b) => {
+      const posA = a.position ?? 0;
+      const posB = b.position ?? 0;
+      if (posA !== posB) return posA - posB;
 
-    try {
-      setCompletingRecording(true);
+      // If positions are equal, compare numerical part numbers in titles (e.g. "Part 1" vs "Part 2")
+      const numA = (a.title?.match(/part\s*(\d+)/i) || [])[1];
+      const numB = (b.title?.match(/part\s*(\d+)/i) || [])[1];
+      if (numA && numB && Number(numA) !== Number(numB)) {
+        return Number(numA) - Number(numB);
+      }
 
-      await api.post(
-        `/progress/recordings/${activeRecordingId}/complete`
-      );
-
-      // Refresh overall course progress
-      await fetchCourseProgress();
-    } catch (err) {
-      console.error(
-        "Failed to complete recording:",
-        err
-      );
-
-      alert(
-        err?.response?.data?.message ||
-          "Failed to update lesson progress."
-      );
-    } finally {
-      setCompletingRecording(false);
-    }
+      return (a.id ?? 0) - (b.id ?? 0);
+    });
   };
 
   // ======================================================
@@ -649,18 +633,30 @@ const StudentRecordings = () => {
         );
 
         const courseData = courseRes.data;
-
         setCourse(courseData);
 
-        const moduleList =
-          courseData?.modules || [];
+        // 1. Strictly sort modules by position ASC, then id ASC
+        const moduleList = (courseData?.modules || [])
+          .slice()
+          .sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.id - b.id);
 
         const moduleData = await Promise.all(
           moduleList.map(async (m) => {
-            const recordings = await api
+            const rawRecs = await api
               .get(`/recordings/module/${m.id}`)
-              .then((res) => res.data)
+              .then((res) => (Array.isArray(res.data) ? res.data : []))
               .catch(() => []);
+
+            // Ensure position is preserved from courseData if rawRecs omitted it
+            const recordings = sortRecordingsNaturally(
+              rawRecs.map((r) => {
+                const matched = (m.recordings || []).find((mr) => mr.id === r.id);
+                return {
+                  ...r,
+                  position: r.position ?? matched?.position ?? 0,
+                };
+              })
+            );
 
             const attachments = await api
               .get(
@@ -687,6 +683,7 @@ const StudentRecordings = () => {
             return {
               id: m.id,
               title: m.title,
+              position: m.position,
               recordings,
               attachments,
               notes,
@@ -696,31 +693,42 @@ const StudentRecordings = () => {
 
         setModules(moduleData);
 
-        const firstModuleWithRecording =
-          moduleData.find(
-            (m) => m.recordings.length > 0
-          );
-
-        const firstRecording =
-          firstModuleWithRecording?.recordings[0];
-
-        if (firstRecording) {
-          setActiveRecordingId(
-            firstRecording.id
-          );
+        // Fetch course progress immediately so we can open at the student's next uncompleted lesson
+        let completedCount = 0;
+        try {
+          const progRes = await api.get(`/progress/course/${courseId}`);
+          const progData = progRes.data?.data || null;
+          setCourseProgress(progData);
+          completedCount = Math.max(0, Number(progData?.completedLessons) || 0);
+        } catch (e) {
+          // Progress fetch handled in separate effect
         }
 
-        if (firstModuleWithRecording) {
-          setExpandedModuleIds(
-            new Set([
-              firstModuleWithRecording.id,
-            ])
-          );
+        const flatRecs = moduleData.flatMap((mod) =>
+          mod.recordings.map((r) => ({
+            ...r,
+            moduleId: mod.id,
+            moduleTitle: mod.title,
+          }))
+        );
+
+        // Target next uncompleted lesson in exact order, or first lesson if starting fresh
+        const targetRec =
+          (completedCount > 0 && completedCount < flatRecs.length
+            ? flatRecs[completedCount]
+            : null) ||
+          flatRecs[0];
+
+        if (targetRec) {
+          setActiveRecordingId(targetRec.id);
+          if (targetRec.moduleId) {
+            setExpandedModuleIds(new Set([targetRec.moduleId]));
+          }
         }
       } catch (err) {
         setError(
           err?.response?.data?.message ||
-            "Failed to load this course. Please try again."
+          "Failed to load this course. Please try again."
         );
       } finally {
         setLoading(false);
@@ -743,23 +751,196 @@ const StudentRecordings = () => {
   }, [courseId]);
 
   // ======================================================
-  // RECORDINGS
+  // RECORDINGS LIST IN STRICT SEQUENTIAL ORDER
   // ======================================================
 
   const allRecordings = modules.flatMap((m) =>
     m.recordings.map((r) => ({
       ...r,
+      moduleId: m.id,
       moduleTitle: m.title,
     }))
   );
 
-  const activeRecording = allRecordings.find(
-    (r) => r.id === activeRecordingId
+  const activeIndex = allRecordings.findIndex(
+    (r) => Number(r.id) === Number(activeRecordingId)
   );
 
-  const activeIndex = allRecordings.findIndex(
-    (r) => r.id === activeRecordingId
+  const activeRecording =
+    activeIndex !== -1 ? allRecordings[activeIndex] : allRecordings[0] || null;
+
+  const completedLessonsCount = Math.max(
+    0,
+    Number(courseProgress?.completedLessons) || 0
   );
+
+  const isCurrentLessonCompleted =
+    activeIndex !== -1 && activeIndex < completedLessonsCount;
+
+  const hasNextLesson =
+    activeIndex !== -1 && activeIndex < allRecordings.length - 1;
+
+  const hasPrevLesson = activeIndex > 0;
+
+  // ======================================================
+  // COMPLETE ACTIVE RECORDING & LOAD NEXT IN ORDER
+  // ======================================================
+
+  const handleCompleteRecording = async () => {
+    if (!activeRecordingId || completingRecording) {
+      return;
+    }
+
+    try {
+      setCompletingRecording(true);
+
+      await api.post(
+        `/progress/recordings/${activeRecordingId}/complete`
+      );
+
+      // Refresh overall course progress
+      await fetchCourseProgress();
+
+      // Find current recording index in sequential order
+      const currIdx = allRecordings.findIndex(
+        (r) => Number(r.id) === Number(activeRecordingId)
+      );
+
+      if (currIdx !== -1 && currIdx < allRecordings.length - 1) {
+        const nextRecording = allRecordings[currIdx + 1];
+        setActiveRecordingId(nextRecording.id);
+
+        if (nextRecording.moduleId) {
+          setExpandedModuleIds(
+            (prev) => new Set([...prev, nextRecording.moduleId])
+          );
+        }
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } else if (currIdx !== -1 && currIdx === allRecordings.length - 1) {
+        alert("🎉 Congratulations! You have completed all lessons in this course!");
+      }
+    } catch (err) {
+      console.error(
+        "Failed to complete recording:",
+        err
+      );
+
+      alert(
+        err?.response?.data?.message ||
+        "Failed to update lesson progress."
+      );
+    } finally {
+      setCompletingRecording(false);
+    }
+  };
+
+  // ======================================================
+  // DIRECT SEQUENTIAL NAVIGATION
+  // ======================================================
+
+  const goToNextLesson = () => {
+    if (hasNextLesson) {
+      const nextRec = allRecordings[activeIndex + 1];
+      setActiveRecordingId(nextRec.id);
+      if (nextRec.moduleId) {
+        setExpandedModuleIds((prev) => new Set([...prev, nextRec.moduleId]));
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const goToPrevLesson = () => {
+    if (hasPrevLesson) {
+      const prevRec = allRecordings[activeIndex - 1];
+      setActiveRecordingId(prevRec.id);
+      if (prevRec.moduleId) {
+        setExpandedModuleIds((prev) => new Set([...prev, prevRec.moduleId]));
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  // ======================================================
+  // YOUTUBE EMBED ENHANCER & AUTO-ADVANCE ON VIDEO END
+  // ======================================================
+
+  const getEnhancedEmbedUrl = (url) => {
+    if (!url) return "";
+    try {
+      if (url.includes("youtube.com/embed") || url.includes("youtu.be")) {
+        const urlObj = new URL(url);
+        // rel=0 ensures YouTube does not recommend random outside videos
+        urlObj.searchParams.set("rel", "0");
+        urlObj.searchParams.set("enablejsapi", "1");
+        return urlObj.toString();
+      }
+    } catch (e) {}
+    return url;
+  };
+
+  useEffect(() => {
+    const handleMessage = (event) => {
+      try {
+        let data = event.data;
+        if (typeof data === "string") {
+          data = JSON.parse(data);
+        }
+        // YouTube API info=0 means video playback ended
+        if (
+          data &&
+          (data.event === "onStateChange" || data.info === 0) &&
+          data.info === 0
+        ) {
+          if (!completingRecording && activeRecordingId) {
+            handleCompleteRecording();
+          }
+        }
+      } catch (e) {}
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [activeRecordingId, completingRecording, allRecordings]);
+
+  // ======================================================
+  // LEVEL SELECTION & VIDEO REDIRECTION
+  // ======================================================
+
+  const handleSelectLevel = (module) => {
+    if (!module) return;
+
+    // Check if module is locked
+    const moduleIdx = modules.findIndex((m) => m.id === module.id);
+    let remComp = Math.max(0, Number(courseProgress?.completedLessons) || 0);
+    let prevDone = true;
+    for (let i = 0; i < moduleIdx; i++) {
+      const tot = modules[i].recordings?.length || 0;
+      const comp = Math.min(remComp, tot);
+      remComp -= comp;
+      if (tot > 0 && comp < tot) {
+        prevDone = false;
+        break;
+      }
+    }
+
+    if (moduleIdx > 0 && !prevDone) {
+      alert(`Level ${moduleIdx + 1} is locked. Complete Level ${moduleIdx} first to unlock this level.`);
+      return;
+    }
+
+    // Unlocked! Find first recording in this level module
+    const recordings = module.recordings || [];
+    if (recordings.length > 0) {
+      setActiveRecordingId(recordings[0].id);
+    }
+
+    // Expand this module in the sidebar so it's open
+    setExpandedModuleIds((prev) => new Set([...prev, module.id]));
+
+    // Smoothly scroll to the top of the video player
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   // ======================================================
   // MODULE TOGGLE
@@ -832,7 +1013,7 @@ const StudentRecordings = () => {
           COURSE PROGRESS
       ================================================== */}
 
-    
+
 
       {/* ==================================================
           MAIN CONTENT
@@ -855,13 +1036,13 @@ const StudentRecordings = () => {
             <div
               className={
                 activeRecording?.provider ===
-                "GOOGLE_DRIVE"
+                  "GOOGLE_DRIVE"
                   ? "w-full"
                   : "aspect-video w-full"
               }
               style={
                 activeRecording?.provider ===
-                "GOOGLE_DRIVE"
+                  "GOOGLE_DRIVE"
                   ? { paddingBottom: "68%" }
                   : undefined
               }
@@ -870,7 +1051,7 @@ const StudentRecordings = () => {
                 <iframe
                   key={activeRecording.id}
                   className="absolute inset-0 h-full w-full"
-                  src={activeRecording.embedUrl}
+                  src={getEnhancedEmbedUrl(activeRecording.embedUrl)}
                   title={activeRecording.title}
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
@@ -936,69 +1117,142 @@ const StudentRecordings = () => {
             )}
           </div>
 
-     
+
           {/* ==================================================
-              MARK LESSON COMPLETE
+              LESSON CONTROLS & COMPLETION
           ================================================== */}
 
           {activeRecording && (
-            <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+            <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm">
               <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-50">
-                  <CheckCircle2 className="h-5 w-5 text-sky-600" />
+                <div
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                    isCurrentLessonCompleted
+                      ? "bg-emerald-50 text-emerald-600"
+                      : "bg-sky-50 text-sky-600"
+                  }`}
+                >
+                  <CheckCircle2 className="h-5 w-5" />
                 </div>
 
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">
-                    Finished this lesson?
+                  <p className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                    {isCurrentLessonCompleted ? (
+                      <>
+                        <span>Lesson Completed</span>
+                        <span className="text-[10px] font-bold uppercase bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
+                          Done
+                        </span>
+                      </>
+                    ) : (
+                      "Finished this lesson?"
+                    )}
                   </p>
 
                   <p className="mt-1 text-xs text-slate-500">
-                    Mark this lesson as completed to
-                    update your course progress.
+                    {isCurrentLessonCompleted
+                      ? hasNextLesson
+                        ? `Next in order: ${allRecordings[activeIndex + 1]?.title}`
+                        : "You've completed all lessons in this course!"
+                      : "Mark as completed to advance to the next video automatically in order."}
                   </p>
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={handleCompleteRecording}
-                disabled={completingRecording}
-                className="
-                  inline-flex
-                  items-center
-                  justify-center
-                  gap-2
-                  rounded-xl
-                  bg-sky-600
-                  px-5
-                  py-2.5
-                  text-sm
-                  font-semibold
-                  text-white
-                  transition
-                  hover:bg-sky-700
-                  disabled:cursor-not-allowed
-                  disabled:opacity-60
-                  shrink-0
-                "
-              >
-                <CheckCircle2 className="h-4 w-4" />
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Prev Lesson Button */}
+                {hasPrevLesson && (
+                  <button
+                    type="button"
+                    onClick={goToPrevLesson}
+                    title="Go to previous lesson in order"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shrink-0"
+                  >
+                    <ArrowLeft className="h-3.5 w-3.5" />
+                    Prev
+                  </button>
+                )}
 
-                {completingRecording
-                  ? "Saving..."
-                  : "Mark as Complete"}
-              </button>
+                {/* Mark as Complete or Next Button */}
+                {!isCurrentLessonCompleted ? (
+                  <button
+                    type="button"
+                    onClick={handleCompleteRecording}
+                    disabled={completingRecording}
+                    className="
+                      inline-flex
+                      items-center
+                      justify-center
+                      gap-2
+                      rounded-xl
+                      bg-sky-600
+                      px-5
+                      py-2.5
+                      text-sm
+                      font-semibold
+                      text-white
+                      transition
+                      hover:bg-sky-700
+                      disabled:cursor-not-allowed
+                      disabled:opacity-60
+                      shrink-0
+                      shadow-sm
+                    "
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    {completingRecording
+                      ? "Saving..."
+                      : hasNextLesson
+                      ? "Mark Complete & Next"
+                      : "Mark as Complete"}
+                    {hasNextLesson && !completingRecording && (
+                      <ArrowRight className="h-4 w-4 ml-0.5" />
+                    )}
+                  </button>
+                ) : hasNextLesson ? (
+                  <button
+                    type="button"
+                    onClick={goToNextLesson}
+                    className="
+                      inline-flex
+                      items-center
+                      justify-center
+                      gap-2
+                      rounded-xl
+                      bg-emerald-600
+                      px-5
+                      py-2.5
+                      text-sm
+                      font-semibold
+                      text-white
+                      transition
+                      hover:bg-emerald-700
+                      shrink-0
+                      shadow-sm
+                    "
+                  >
+                    Next Lesson
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                ) : (
+                  <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-semibold">
+                    <CheckCircle2 className="h-4 w-4" />
+                    All Lessons Completed!
+                  </div>
+                )}
+              </div>
             </div>
           )}
-                       <CourseProgress
-        progress={courseProgress}
-        modules={modules}
-      />
+          <CourseProgress
+            progress={courseProgress}
+            modules={modules}
+            activeModuleId={activeRecording?.moduleId}
+            onSelectLevel={handleSelectLevel}
+          />
 
         </div>
 
-        
+
 
         {/* ==================================================
             COURSE CONTENT SIDEBAR
@@ -1033,53 +1287,95 @@ const StudentRecordings = () => {
           </div>
 
           <div className="sm:max-h-[70vh] sm:overflow-y-auto">
-            {modules.map((module) => {
-              const isExpanded =
-                expandedModuleIds.has(module.id);
+            {modules.map((module, moduleIdx) => {
+              const isExpanded = expandedModuleIds.has(module.id);
+
+              let remComp = Math.max(0, Number(courseProgress?.completedLessons) || 0);
+              let prevModDone = true;
+              for (let i = 0; i < moduleIdx; i++) {
+                const tot = modules[i].recordings?.length || 0;
+                const comp = Math.min(remComp, tot);
+                remComp -= comp;
+                if (tot > 0 && comp < tot) {
+                  prevModDone = false;
+                  break;
+                }
+              }
+              const isModuleLocked = moduleIdx > 0 && !prevModDone;
 
               return (
                 <div key={module.id}>
                   <button
-                    onClick={() =>
-                      toggleModule(module.id)
-                    }
-                    className="w-full flex items-start gap-2 px-4 py-3 bg-sky-50/70 border-y border-sky-100 border-l-[3px] border-l-sky-500 text-left"
+                    onClick={() => {
+                      if (isModuleLocked) {
+                        alert(
+                          `Level ${moduleIdx + 1} is locked. Complete Level ${moduleIdx} first to unlock.`
+                        );
+                      } else {
+                        toggleModule(module.id);
+                      }
+                    }}
+                    className={`w-full flex items-start gap-2 px-4 py-3 border-y text-left transition-colors ${
+                      isModuleLocked
+                        ? "bg-slate-50 border-slate-200 border-l-[3px] border-l-slate-300 opacity-70"
+                        : "bg-sky-50/70 border-sky-100 border-l-[3px] border-l-sky-500 hover:bg-sky-50"
+                    }`}
                   >
-                    <Layers className="h-3.5 w-3.5 text-sky-500 shrink-0 mt-0.5" />
+                    {isModuleLocked ? (
+                      <Lock className="h-3.5 w-3.5 text-slate-400 shrink-0 mt-0.5" />
+                    ) : (
+                      <Layers className="h-3.5 w-3.5 text-sky-500 shrink-0 mt-0.5" />
+                    )}
 
                     <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span
+                          className={`text-[10px] font-bold uppercase tracking-wider ${
+                            isModuleLocked ? "text-slate-400" : "text-sky-600"
+                          }`}
+                          style={mono}
+                        >
+                          Level {moduleIdx + 1}
+                        </span>
+                        {isModuleLocked && (
+                          <span className="text-[9px] font-semibold uppercase bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded">
+                            Locked
+                          </span>
+                        )}
+                      </div>
+
                       <p
-                        className="text-xs font-semibold text-sky-700 uppercase tracking-wide leading-relaxed line-clamp-2 wrap-break-words"
+                        className={`text-xs font-semibold uppercase tracking-wide leading-relaxed line-clamp-2 wrap-break-words mt-0.5 ${
+                          isModuleLocked ? "text-slate-500" : "text-sky-700"
+                        }`}
                         style={mono}
                       >
                         {module.title}
                       </p>
 
-                      <p className="mt-0.5 text-[11px] text-sky-500/70 normal-case">
+                      <p className="mt-0.5 text-[11px] text-slate-400 normal-case">
                         {module.recordings.length} lesson
                         {module.recordings.length === 1
                           ? ""
                           : "s"}
                         {module.notes?.length > 0 &&
-                          ` · ${module.notes.length} note${
-                            module.notes.length === 1
-                              ? ""
-                              : "s"
+                          ` · ${module.notes.length} note${module.notes.length === 1
+                            ? ""
+                            : "s"
                           }`}
                         {module.attachments?.length > 0 &&
-                          ` · ${module.attachments.length} file${
-                            module.attachments.length === 1
-                              ? ""
-                              : "s"
+                          ` · ${module.attachments.length} file${module.attachments.length === 1
+                            ? ""
+                            : "s"
                           }`}
                       </p>
                     </div>
 
                     <ChevronDown
-                      className={`h-4 w-4 text-sky-500 shrink-0 mt-0.5 transition-transform duration-200 ${
-                        isExpanded
-                          ? "rotate-180"
-                          : ""
+                      className={`h-4 w-4 ${
+                        isModuleLocked ? "text-slate-400" : "text-sky-500"
+                      } shrink-0 mt-0.5 transition-transform duration-200 ${
+                        isExpanded ? "rotate-180" : ""
                       }`}
                     />
                   </button>
@@ -1097,25 +1393,43 @@ const StudentRecordings = () => {
                         {module.recordings.map(
                           (rec) => {
                             const isActive =
-                              rec.id ===
-                              activeRecordingId;
+                              Number(rec.id) === Number(activeRecordingId);
+
+                            const globalRecIdx = allRecordings.findIndex(
+                              (r) => Number(r.id) === Number(rec.id)
+                            );
+
+                            const isRecCompleted =
+                              globalRecIdx !== -1 &&
+                              globalRecIdx < completedLessonsCount;
 
                             return (
                               <li key={rec.id}>
                                 <button
-                                  onClick={() =>
-                                    setActiveRecordingId(
-                                      rec.id
-                                    )
-                                  }
+                                  onClick={() => {
+                                    if (isModuleLocked) {
+                                      alert(
+                                        `Level ${moduleIdx + 1} is locked. Complete Level ${moduleIdx} first to unlock.`
+                                      );
+                                    } else {
+                                      setActiveRecordingId(rec.id);
+                                      window.scrollTo({ top: 0, behavior: "smooth" });
+                                    }
+                                  }}
                                   className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
-                                    isActive
-                                      ? "bg-sky-50"
-                                      : "hover:bg-sky-50"
+                                    isModuleLocked
+                                      ? "cursor-not-allowed opacity-60 bg-slate-50"
+                                      : isActive
+                                      ? "bg-sky-50/90 border-l-[3px] border-l-sky-500 font-medium"
+                                      : "hover:bg-sky-50/50"
                                   }`}
                                 >
-                                  {isActive ? (
-                                    <CheckCircle2 className="h-5 w-5 text-sky-600 shrink-0" />
+                                  {isModuleLocked ? (
+                                    <Lock className="h-4 w-4 text-slate-400 shrink-0" />
+                                  ) : isRecCompleted ? (
+                                    <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+                                  ) : isActive ? (
+                                    <Play className="h-4 w-4 text-sky-600 fill-current shrink-0 ml-0.5" />
                                   ) : (
                                     <Circle className="h-5 w-5 text-slate-300 shrink-0" />
                                   )}
@@ -1124,8 +1438,10 @@ const StudentRecordings = () => {
                                     <p
                                       className={`text-sm truncate ${
                                         isActive
-                                          ? "font-semibold text-slate-900"
-                                          : "text-slate-700"
+                                          ? "font-semibold text-sky-950"
+                                          : isRecCompleted
+                                          ? "font-medium text-slate-800"
+                                          : "text-slate-600"
                                       }`}
                                     >
                                       {rec.title}
@@ -1221,12 +1537,12 @@ const StudentRecordings = () => {
                       )}
                     </>
                   )}
-                  
+
                 </div>
-                
+
               );
             })}
-      
+
 
             {modules.length === 0 && (
               <p className="text-sm text-slate-400 text-center py-8">
@@ -1237,7 +1553,7 @@ const StudentRecordings = () => {
           </div>
         </aside>
 
-        
+
 
         {/* ==================================================
             REVIEWS — KEPT
