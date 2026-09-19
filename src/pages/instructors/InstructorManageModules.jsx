@@ -449,12 +449,16 @@ const InstructorManageModules = () => {
                 <div className="px-4 sm:px-5 pb-4 sm:pb-5 -mt-1">
                   <button
                     onClick={() => {
-                      const count = noteCounts[mod.id];
-                      if (count === 0) {
-                        setOpenNotes((prev) => new Set(prev).add(mod.id));
-                        moduleNotesRefs.current[mod.id]?.openAdd();
-                      } else {
+                      if (notesOpen) {
                         toggleNotes(mod.id);
+                      } else {
+                        const count = noteCounts[mod.id];
+                        if (count === 0) {
+                          setOpenNotes((prev) => new Set(prev).add(mod.id));
+                          moduleNotesRefs.current[mod.id]?.openAdd();
+                        } else {
+                          toggleNotes(mod.id);
+                        }
                       }
                     }}
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
@@ -478,14 +482,12 @@ const InstructorManageModules = () => {
                         {noteCounts[mod.id]}
                       </span>
                     )}
-                    {noteCounts[mod.id] === 0 ? (
+                    {notesOpen ? (
+                      <ChevronDown className="h-3.5 w-3.5 rotate-180 transition-transform" />
+                    ) : noteCounts[mod.id] === 0 ? (
                       <Plus className="h-3.5 w-3.5" />
                     ) : (
-                      <ChevronDown
-                        className={`h-3.5 w-3.5 transition-transform ${
-                          notesOpen ? "rotate-180" : ""
-                        }`}
-                      />
+                      <ChevronDown className="h-3.5 w-3.5 transition-transform" />
                     )}
                   </button>
 
@@ -498,6 +500,7 @@ const InstructorManageModules = () => {
                       }}
                       moduleId={mod.id}
                       editable
+                      onClose={() => toggleNotes(mod.id)}
                       onCountChange={(count) =>
                         setNoteCounts((prev) => ({ ...prev, [mod.id]: count }))
                       }
