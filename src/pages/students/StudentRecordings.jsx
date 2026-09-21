@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import api from "../../api/axios";
 import CourseProgress from "../../components/student/CourseProgress";
+import AchievementShare from "../../components/ProgressShare/AchievementShare";
 
 const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');`;
 
@@ -567,6 +568,11 @@ const StudentRecordings = () => {
   const [completingRecording, setCompletingRecording] =
     useState(false);
 
+  // Level & course achievement share modal state
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [selectedShareLevel, setSelectedShareLevel] = useState(null);
+  const [shareCertificate, setShareCertificate] = useState(null);
+
   const [activeRecordingId, setActiveRecordingId] =
     useState(null);
 
@@ -794,12 +800,35 @@ const StudentRecordings = () => {
     try {
       setCompletingRecording(true);
 
-      await api.post(
+      const completeRes = await api.post(
         `/progress/recordings/${activeRecordingId}/complete`
       );
+      const resData = completeRes?.data?.data;
+      if (resData?.certificate) {
+        setShareCertificate(resData.certificate);
+      }
 
       // Refresh overall course progress
       await fetchCourseProgress();
+
+      // Check if this recording completion finished a level or the course
+      const currModule = modules.find((m) => m.id === activeRecording?.moduleId);
+      if (currModule) {
+        const moduleRecordings = currModule.recordings || [];
+        const isLastInModule =
+          moduleRecordings.length > 0 &&
+          moduleRecordings[moduleRecordings.length - 1]?.id === Number(activeRecordingId);
+
+        if (isLastInModule || resData?.courseCompleted) {
+          const moduleIndex = modules.findIndex((m) => m.id === currModule.id);
+          setSelectedShareLevel({
+            ...currModule,
+            level: moduleIndex !== -1 ? moduleIndex + 1 : 1,
+            isCourseCompleted: !!resData?.courseCompleted,
+          });
+          setShareModalOpen(true);
+        }
+      }
 
       // Find current recording index in sequential order
       const currIdx = allRecordings.findIndex(
@@ -818,7 +847,7 @@ const StudentRecordings = () => {
 
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else if (currIdx !== -1 && currIdx === allRecordings.length - 1) {
-        alert("🎉 Congratulations! You have completed all lessons in this course!");
+        // Full course completed: AchievementShare modal will display with celebratory confetti!
       }
     } catch (err) {
       console.error(
@@ -1248,6 +1277,10 @@ const StudentRecordings = () => {
             modules={modules}
             activeModuleId={activeRecording?.moduleId}
             onSelectLevel={handleSelectLevel}
+            onShareLevel={(mod) => {
+              setSelectedShareLevel(mod);
+              setShareModalOpen(true);
+            }}
           />
 
         </div>
@@ -1566,6 +1599,18 @@ const StudentRecordings = () => {
             />
           </div>
         )}
+
+        {/* ==================================================
+            LEVEL & COURSE ACHIEVEMENT CELEBRATION MODAL
+        ================================================== */}
+        <AchievementShare
+          isOpen={shareModalOpen}
+          onClose={() => setShareModalOpen(false)}
+          course={course}
+          levelData={selectedShareLevel}
+          progress={courseProgress}
+          certificate={shareCertificate}
+        />
       </div>
     </div>
   );
