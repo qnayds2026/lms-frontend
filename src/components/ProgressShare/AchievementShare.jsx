@@ -324,8 +324,7 @@ export default function AchievementShare({
       (achievementData.totalLessons > 0
         ? `✅ Lessons: ${achievementData.completedLessons}/${achievementData.totalLessons} Completed\n`
         : "") +
-      `📅 Issued: ${achievementData.completedAt}\n` +
-      `🛡️ Credential ID: ${achievementData.credentialId}\n\n` +
+      `📅 Issued: ${achievementData.completedAt}\n\n` +
       `🚀 Build in-demand tech skills with hands-on projects!\n` +
       `Explore courses & start learning at:\nhttps://lms.qnayds.in/\n\n` +
       `💬 Admissions & Inquiries (WhatsApp):\nhttps://wa.me/919074871204 (+91 9074871204)\n\n` +
@@ -344,8 +343,7 @@ export default function AchievementShare({
       (achievementData.totalLessons > 0
         ? `✅ *Progress:* ${achievementData.completedLessons}/${achievementData.totalLessons} Lessons Completed\n`
         : "") +
-      `📅 *Date:* ${achievementData.completedAt}\n` +
-      `🛡️ *Credential ID:* ${achievementData.credentialId}\n\n` +
+      `📅 *Date:* ${achievementData.completedAt}\n\n` +
       `🚀 *Level up your career with hands-on tech courses:* \nhttps://lms.qnayds.in/\n\n` +
       `💬 *WhatsApp Admissions / Inquiries:*\nhttps://wa.me/919074871204 (+91 9074871204)`
     );
