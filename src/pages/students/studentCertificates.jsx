@@ -7,8 +7,10 @@ import {
   Loader2,
   ShieldCheck,
   Sparkles,
+  Share2,
 } from "lucide-react";
 import api from "../../api/axios";
+import AchievementShare from "../../components/ProgressShare/AchievementShare";
 
 const FONT_IMPORT = `
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -24,6 +26,7 @@ const mono = {
 
 const StudentCertificates = () => {
   const [certificates, setCertificates] = useState([]);
+  const [selectedShareCert, setSelectedShareCert] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -234,19 +237,47 @@ const StudentCertificates = () => {
                   </div>
 
                   {/* Actions */}
-                  <div className="mt-5">
+                  <div className="mt-5 grid grid-cols-2 gap-2">
                     <Link
                       to={`/student/certificates/${certificate.id}`}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 px-3 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 transition"
                     >
-                      View Certificate
-                      <ExternalLink className="h-4 w-4" />
+                      <span>View</span>
+                      <ExternalLink className="h-3.5 w-3.5" />
                     </Link>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedShareCert(certificate)}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 px-3 py-2.5 text-xs sm:text-sm font-semibold text-white transition shadow-sm cursor-pointer"
+                    >
+                      <Share2 className="h-3.5 w-3.5" />
+                      <span>Share</span>
+                    </button>
                   </div>
                 </div>
               </div>
             ))}
           </div>
+        )}
+
+        {/* Certificate Achievement Share Modal */}
+        {selectedShareCert && (
+          <AchievementShare
+            isOpen={!!selectedShareCert}
+            onClose={() => setSelectedShareCert(null)}
+            course={selectedShareCert.course}
+            certificate={selectedShareCert}
+            data={{
+              courseName: selectedShareCert.course?.title,
+              courseId: selectedShareCert.courseId,
+              studentName: selectedShareCert.student?.name,
+              credentialId: selectedShareCert.certificateNumber,
+              completedAt: formatDate(selectedShareCert.issuedAt),
+              isCourseCompleted: true,
+              level: 1,
+              levelTitle: "Course Mastery & Certification",
+            }}
+          />
         )}
       </div>
     </div>

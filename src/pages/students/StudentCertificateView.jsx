@@ -10,6 +10,7 @@ import {
   Share2,
 } from "lucide-react";
 import api from "../../api/axios";
+import AchievementShare from "../../components/ProgressShare/AchievementShare";
 
 // ========================================
 // LOGOS
@@ -82,6 +83,7 @@ const StudentCertificateView = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   // ========================================
   // FETCH CERTIFICATE
@@ -174,68 +176,8 @@ const StudentCertificateView = () => {
   // SHARE CERTIFICATE
   // ========================================
 
-  const handleShareCertificate = async () => {
-    const verificationUrl =
-      getVerificationUrl();
-
-    if (!verificationUrl) {
-      return;
-    }
-
-    const courseName =
-      certificate?.course?.title ||
-      "Course Completion";
-
-    const studentName =
-      certificate?.student?.name ||
-      "Student";
-
-    const shareData = {
-      title: `Certificate - ${courseName}`,
-      text: `${studentName} successfully completed ${courseName} at QNAYDS LLP.`,
-      url: verificationUrl,
-    };
-
-    try {
-      if (
-        navigator.share &&
-        typeof navigator.share === "function"
-      ) {
-        await navigator.share(shareData);
-        return;
-      }
-
-      await navigator.clipboard.writeText(
-        verificationUrl,
-      );
-
-      setCopied(true);
-
-      setTimeout(() => {
-        setCopied(false);
-      }, 2000);
-    } catch (err) {
-      if (err?.name === "AbortError") {
-        return;
-      }
-
-      try {
-        await navigator.clipboard.writeText(
-          verificationUrl,
-        );
-
-        setCopied(true);
-
-        setTimeout(() => {
-          setCopied(false);
-        }, 2000);
-      } catch (clipboardError) {
-        console.error(
-          "Clipboard fallback failed:",
-          clipboardError,
-        );
-      }
-    }
+  const handleShareCertificate = () => {
+    setShareModalOpen(true);
   };
 
   // ========================================
@@ -811,6 +753,26 @@ const StudentCertificateView = () => {
 
         Digitally verifiable certificate
       </div>
+
+      {/* Achievement Share Modal */}
+      {shareModalOpen && certificate && (
+        <AchievementShare
+          isOpen={shareModalOpen}
+          onClose={() => setShareModalOpen(false)}
+          course={certificate.course}
+          certificate={certificate}
+          data={{
+            courseName: certificate.course?.title,
+            courseId: certificate.courseId,
+            studentName: certificate.student?.name,
+            credentialId: certificate.certificateNumber,
+            completedAt: formatDate(certificate.issuedAt),
+            isCourseCompleted: true,
+            level: 1,
+            levelTitle: "Course Mastery & Official Certification",
+          }}
+        />
+      )}
     </div>
   );
 };
