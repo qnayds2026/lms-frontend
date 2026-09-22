@@ -1,9 +1,10 @@
-import { Trophy, Check, Lock, Flame, Play } from "lucide-react";
+import { Trophy, Check, Lock, Flame, Play, Share2, Award } from "lucide-react";
 
 const CourseProgress = ({
   progress,
   modules = [],
   onSelectLevel,
+  onShareLevel,
   activeModuleId,
 }) => {
   if (!progress) return null;
@@ -225,10 +226,24 @@ const CourseProgress = ({
                       />
                     </div>
 
-                    {!isLocked && (
-                      <span className="mt-1.5 text-[9px] font-medium text-sky-600 opacity-0 group-hover:opacity-100 transition-opacity bg-sky-100 px-1.5 py-0.5 rounded">
-                        Click to play
+                    {module.isCompleted && onShareLevel ? (
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onShareLevel(module);
+                        }}
+                        className="mt-1.5 flex items-center gap-1 text-[9px] font-semibold text-emerald-700 bg-emerald-100/70 hover:bg-emerald-200/80 px-2 py-0.5 rounded-full border border-emerald-200 transition-colors cursor-pointer shadow-xs"
+                        title={`Share Level ${module.level} Badge`}
+                      >
+                        <Share2 className="h-2.5 w-2.5" />
+                        <span>Share Badge</span>
                       </span>
+                    ) : (
+                      !isLocked && (
+                        <span className="mt-1.5 text-[9px] font-medium text-sky-600 opacity-0 group-hover:opacity-100 transition-opacity bg-sky-100 px-1.5 py-0.5 rounded">
+                          Click to play
+                        </span>
+                      )
                     )}
                   </button>
 
@@ -268,12 +283,31 @@ const CourseProgress = ({
               </div>
             </div>
 
-            <button
-              type="button"
-              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
-            >
-              View Certificate
-            </button>
+            <div className="flex items-center gap-2">
+              {onShareLevel && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    onShareLevel({
+                      level: moduleProgress.length,
+                      title: "Full Course Mastery",
+                      isCourseCompleted: true,
+                    })
+                  }
+                  className="flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-white px-3.5 py-2 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100/60 shadow-xs cursor-pointer"
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span>Share Achievement</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 cursor-pointer"
+              >
+                View Certificate
+              </button>
+            </div>
           </div>
         </div>
       )}
