@@ -107,6 +107,10 @@ const App = () => {
         </Route>
         {/* Auth pages rendered standalone, without the public Navbar/Footer */}
         <Route
+          path="/verify-certificate"
+          element={<CertificateVerification />}
+        />
+        <Route
           path="/verify-certificate/:verificationCode"
           element={<CertificateVerification />}
         />

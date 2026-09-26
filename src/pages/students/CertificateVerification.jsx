@@ -1,24 +1,63 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   Award,
+  BookOpen,
+  Briefcase,
   CalendarDays,
   CheckCircle2,
+  GraduationCap,
   Loader2,
+  Search,
   ShieldCheck,
+  Video,
   XCircle,
 } from "lucide-react";
 import api from "../../api/axios";
 
+// Certificate type display meta. Matches the types the backend can issue:
+// Course, Webinar, Internship, Workshop. Falls back gracefully if the
+// verification response doesn't include a `type` field or uses a value
+// not listed here.
+const TYPE_META = {
+  COURSE: { label: "Course", icon: BookOpen },
+  WEBINAR: { label: "Webinar", icon: Video },
+  INTERNSHIP: { label: "Internship", icon: Briefcase },
+  WORKSHOP: { label: "Workshop", icon: GraduationCap },
+};
+
+function getTypeMeta(type) {
+  const key = (type || "").toString().toUpperCase();
+  return TYPE_META[key] || { label: "Course", icon: BookOpen };
+}
+
 const CertificateVerification = () => {
   const { verificationCode } = useParams();
+  const navigate = useNavigate();
+
+  // Controlled input for the "enter a code" form, shown when no code is
+  // present in the URL.
+  const [codeInput, setCodeInput] = useState("");
 
   const [certificate, setCertificate] = useState(null);
   const [valid, setValid] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!verificationCode);
   const [error, setError] = useState("");
+  const [checked, setChecked] = useState(false); // has a verification attempt run yet
 
   useEffect(() => {
+    if (!verificationCode) {
+      // No code in the URL: show the entry form instead of an API call.
+      setLoading(false);
+      setChecked(false);
+      setCertificate(null);
+      setValid(false);
+      setError("");
+      return;
+    }
+
+    let cancelled = false;
+
     const verifyCertificate = async () => {
       try {
         setLoading(true);
@@ -27,28 +66,34 @@ const CertificateVerification = () => {
         const res = await api.get(`/certificates/verify/${verificationCode}`);
         const raw = res.data;
 
+        if (cancelled) return;
+
         setValid(raw?.valid === true);
         setCertificate(raw?.data || null);
       } catch (err) {
+        if (cancelled) return;
+
         console.error("Certificate verification failed:", err);
 
         setValid(false);
-
+        setCertificate(null);
         setError(
           err?.response?.data?.message ||
             "This certificate could not be verified.",
         );
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+          setChecked(true);
+        }
       }
     };
 
-    if (verificationCode) {
-      verifyCertificate();
-    } else {
-      setLoading(false);
-      setError("Verification code is missing.");
-    }
+    verifyCertificate();
+
+    return () => {
+      cancelled = true;
+    };
   }, [verificationCode]);
 
   const formatDate = (date) => {
@@ -60,6 +105,83 @@ const CertificateVerification = () => {
       year: "numeric",
     });
   };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const code = codeInput.trim();
+    if (!code || loading) return; // prevent duplicate/empty submits
+
+    navigate(`/verify-certificate/${encodeURIComponent(code)}`);
+  };
+
+  // ==========================
+  // ENTRY FORM (no code in the URL yet)
+  // ==========================
+
+  if (!verificationCode) {
+    return (
+      <div className="min-h-screen bg-slate-50 px-4 py-10 md:px-8">
+        <div className="mx-auto max-w-xl">
+          <div className="text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-sky-50">
+              <Award className="h-8 w-8 text-sky-600" />
+            </div>
+
+            <p className="mt-5 text-xs font-semibold uppercase tracking-[0.3em] text-sky-600">
+              QNAYDS ACADEMY
+            </p>
+
+            <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
+              Certificate Verification
+            </h1>
+
+            <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-500">
+              Enter a certificate verification code to check whether it was
+              issued by QNAYDS Academy.
+            </p>
+          </div>
+
+          <form
+            onSubmit={handleSubmit}
+            className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50 md:p-8"
+          >
+            <label
+              htmlFor="verification-code"
+              className="text-xs font-semibold uppercase tracking-wider text-slate-400"
+            >
+              Verification Code
+            </label>
+
+            <div className="relative mt-2">
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                id="verification-code"
+                type="text"
+                value={codeInput}
+                onChange={(e) => setCodeInput(e.target.value)}
+                placeholder="e.g. a73504ad2be8a5d78a2904a31cf2c840"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={!codeInput.trim()}
+              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Verify Certificate
+            </button>
+          </form>
+
+          <p className="mt-6 text-center text-xs text-slate-400">
+            The verification code is printed on every certificate issued by
+            QNAYDS Academy.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // ==========================
   // LOADING
@@ -91,7 +213,7 @@ const CertificateVerification = () => {
   // INVALID
   // ==========================
 
-  if (!valid || !certificate) {
+  if (!checked || !valid || !certificate) {
     return (
       <div className="min-h-screen bg-slate-50 px-4 py-10 md:px-8">
         <div className="mx-auto flex min-h-[80vh] max-w-2xl items-center justify-center">
@@ -123,12 +245,21 @@ const CertificateVerification = () => {
               </p>
             </div>
 
-            <Link
-              to="/"
-              className="mt-7 inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700"
-            >
-              Back to QNAYDS
-            </Link>
+            <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Link
+                to="/verify-certificate"
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-sky-200 hover:text-sky-600"
+              >
+                Try another code
+              </Link>
+
+              <Link
+                to="/"
+                className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700"
+              >
+                Back to QNAYDS
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -138,6 +269,9 @@ const CertificateVerification = () => {
   // ==========================
   // VALID
   // ==========================
+
+  const typeMeta = getTypeMeta(certificate.type);
+  const TypeIcon = typeMeta.icon;
 
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-8 md:px-8 md:py-12">
@@ -200,23 +334,30 @@ const CertificateVerification = () => {
               </h2>
             </div>
 
-            {/* Course */}
+            {/* Course / Program + Type */}
 
             <div className="mt-6 rounded-2xl border border-slate-200 p-6">
-              <div className="flex items-start gap-4">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-50">
-                  <Award className="h-5 w-5 text-sky-600" />
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-4 min-w-0">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-50">
+                    <Award className="h-5 w-5 text-sky-600" />
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                      {typeMeta.label} Completed
+                    </p>
+
+                    <h3 className="mt-2 text-xl font-semibold text-slate-900 md:text-2xl">
+                      {certificate.programName}
+                    </h3>
+                  </div>
                 </div>
 
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Course Completed
-                  </p>
-
-                 <h3 className="mt-2 text-xl font-semibold text-slate-900 md:text-2xl">
-                    {certificate.programName}
-                 </h3>
-                </div>
+                <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-medium text-sky-700">
+                  <TypeIcon className="h-3.5 w-3.5" />
+                  {typeMeta.label}
+                </span>
               </div>
             </div>
 
@@ -276,12 +417,21 @@ const CertificateVerification = () => {
                 Digitally verified by QNAYDS Academy
               </div>
 
-              <Link
-                to="/"
-                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:border-sky-200 hover:text-sky-600"
-              >
-                Visit QNAYDS
-              </Link>
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/verify-certificate"
+                  className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:border-sky-200 hover:text-sky-600"
+                >
+                  Verify another
+                </Link>
+
+                <Link
+                  to="/"
+                  className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:border-sky-200 hover:text-sky-600"
+                >
+                  Visit QNAYDS
+                </Link>
+              </div>
             </div>
           </div>
         </div>
