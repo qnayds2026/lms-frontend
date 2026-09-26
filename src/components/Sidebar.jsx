@@ -7,6 +7,7 @@ import {
   BookOpen,
   GraduationCap,
   CreditCard,
+  Award,
   BarChart3,
   Settings,
   Video,
@@ -33,6 +34,7 @@ const NAV_CONFIG = {
       { label: "Courses", href: "/admin/courses", icon: BookOpen },
       { label: "Instructors", href: "/admin/instructors", icon: GraduationCap },
       { label: "Payments", href: "/admin/payments", icon: CreditCard },
+      { label: "Certificates", href: "/admin/certificates", icon: Award },
     ],
     bottomLinks: [
       { label: "Settings", href: "/admin/settings", icon: Settings },

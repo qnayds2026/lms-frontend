@@ -25,11 +25,10 @@ const CertificateVerification = () => {
         setError("");
 
         const res = await api.get(`/certificates/verify/${verificationCode}`);
+        const raw = res.data;
 
-        const data = res.data?.data;
-
-        setValid(data?.valid === true);
-        setCertificate(data?.certificate || null);
+        setValid(raw?.valid === true);
+        setCertificate(raw?.data || null);
       } catch (err) {
         console.error("Certificate verification failed:", err);
 
@@ -214,9 +213,9 @@ const CertificateVerification = () => {
                     Course Completed
                   </p>
 
-                  <h3 className="mt-2 text-xl font-semibold text-slate-900 md:text-2xl">
-                    {certificate.courseName}
-                  </h3>
+                 <h3 className="mt-2 text-xl font-semibold text-slate-900 md:text-2xl">
+                    {certificate.programName}
+                 </h3>
                 </div>
               </div>
             </div>
