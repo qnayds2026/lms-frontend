@@ -8,6 +8,8 @@ import {
   GraduationCap,
   CreditCard,
   Award,
+  Calendar,
+  ClipboardCheck,
   BarChart3,
   Settings,
   Video,
@@ -29,13 +31,21 @@ const NAV_CONFIG = {
     home: "/admin/dashboard",
     label: "Admin",
     links: [
-      { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-      { label: "Users", href: "/admin/users", icon: Users },
-      { label: "Courses", href: "/admin/courses", icon: BookOpen },
-      { label: "Instructors", href: "/admin/instructors", icon: GraduationCap },
-      { label: "Payments", href: "/admin/payments", icon: CreditCard },
-      { label: "Certificates", href: "/admin/certificates", icon: Award },
-    ],
+  { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+  { label: "Users", href: "/admin/users", icon: Users },
+  { label: "Courses", href: "/admin/courses", icon: BookOpen },
+  { label: "Instructors", href: "/admin/instructors", icon: GraduationCap },
+  { label: "Payments", href: "/admin/payments", icon: CreditCard },
+
+  { label: "Programs", href: "/admin/programs", icon: Calendar },
+  {
+    label: "Certificate Requests",
+    href: "/admin/certificate-requests",
+    icon: ClipboardCheck,
+  },
+
+  { label: "Certificates", href: "/admin/certificates", icon: Award },
+],
     bottomLinks: [
       { label: "Settings", href: "/admin/settings", icon: Settings },
     ],

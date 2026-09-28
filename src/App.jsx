@@ -32,6 +32,8 @@ import AdminManageLiveClasses from "./pages/admin/AdminManageLiveclass";
 import UsersList from "./pages/admin/UsersList";
 import AdminPaymentList from "./pages/admin/AdminPaymentList";
 import AdminCertificates from "./pages/admin/AdminCertificates";
+import AdminProgramManagement from "./pages/admin/AdminProgramManagement";
+import AdminCertificateRequests from "./pages/admin/AdminCertificateRequests";
 import InstructorManageAttachments from "./pages/instructors/InstructorManageAttachments";
 import CourseDetail from "./pages/CourseDetails";
 import ActivateAccount from "./pages/ActivateAccount";
@@ -95,6 +97,11 @@ const App = () => {
           <Route path="users" element={<UsersList />} />
           <Route path="instructors/:id" element={<AdminInstructorDetail />} />
           <Route path="payments" element={<AdminPaymentList />} />
+          <Route path="programs" element={<AdminProgramManagement />} />
+          <Route
+            path="certificate-requests"
+            element={<AdminCertificateRequests />}
+          />
           <Route path="certificates" element={<AdminCertificates />} />
           <Route
             path="courses/:courseId/recordings"
