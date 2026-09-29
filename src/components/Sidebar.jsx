@@ -38,11 +38,7 @@ const NAV_CONFIG = {
   { label: "Payments", href: "/admin/payments", icon: CreditCard },
 
   { label: "Programs", href: "/admin/programs", icon: Calendar },
-  {
-    label: "Certificate Requests",
-    href: "/admin/certificate-requests",
-    icon: ClipboardCheck,
-  },
+  
 
   { label: "Certificates", href: "/admin/certificates", icon: Award },
 ],
