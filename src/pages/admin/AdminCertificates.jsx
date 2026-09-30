@@ -4,18 +4,26 @@ import { Award, Clock3 } from "lucide-react";
 import AdminCertificateRequests from "./AdminCertificateRequests";
 import AdminIssuedCertificates from "./AdminIssuedCertificates";
 
+const display = { fontFamily: "'Space Grotesk', sans-serif" };
+
 const AdminCertificates = () => {
   const [activeTab, setActiveTab] = useState("requests");
 
   return (
-    <div className="p-4 sm:p-6">
+   <div
+  className="p-4 sm:p-6"
+  style={display}
+  >
       {/* Header */}
       <div className="mb-6">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700">
           admin_panel
         </span>
 
-        <h1 className="mt-3 text-2xl font-semibold text-slate-900 sm:text-3xl">
+        <h1
+        className="mt-3 text-2xl font-semibold text-slate-900 sm:text-3xl"
+        style={display}
+      >
           Certificates
         </h1>
 
