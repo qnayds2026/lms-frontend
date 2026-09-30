@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 
@@ -21,6 +21,8 @@ import {
   Check,
   X,
   Share2,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import PaymentModal from "../../components/student/PaymentModal";
 
@@ -545,6 +547,18 @@ const StudentDashboard = () => {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [detailsCourseId, setDetailsCourseId] = useState(null);
+  const [showAllCourses, setShowAllCourses] = useState(false);
+  const coursesSectionRef = useRef(null);
+
+  const toggleShowAllCourses = () => {
+    if (showAllCourses && coursesSectionRef.current) {
+      coursesSectionRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    setShowAllCourses((prev) => !prev);
+  };
+
+  const INITIAL_COURSE_LIMIT = 3;
+  const displayedCourses = showAllCourses ? courses : courses.slice(0, INITIAL_COURSE_LIMIT);
 
   const fetchDashboard = async () => {
     try {
@@ -647,8 +661,6 @@ const StudentDashboard = () => {
     setDetailsCourseId(course.id ?? course._id);
   };
 
-  CourseCard;
-
   if (loading) {
     return <DashboardSkeleton />;
   }
@@ -733,7 +745,7 @@ const StudentDashboard = () => {
       </div>
 
       {/* Explore courses */}
-      <div className="mt-10">
+      <div className="mt-10" ref={coursesSectionRef}>
         <div className="flex items-end justify-between">
           <div>
             <p className="text-sky-600 text-xs font-medium" style={mono}>
@@ -746,12 +758,14 @@ const StudentDashboard = () => {
               Explore courses
             </h2>
           </div>
-          <button
-            onClick={() => navigate("/courses")}
-            className="text-sm font-medium text-sky-600 hover:text-sky-700 inline-flex items-center gap-1"
-          >
-            View all <ArrowRight className="w-3.5 h-3.5" />
-          </button>
+          {courses.length > 0 && (
+            <span
+              className="text-xs font-medium px-3 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200"
+              style={mono}
+            >
+              Showing {displayedCourses.length} of {courses.length} courses
+            </span>
+          )}
         </div>
 
         {coursesLoading ? (
@@ -764,16 +778,35 @@ const StudentDashboard = () => {
             ))}
           </div>
         ) : courses.length > 0 ? (
-          <div className="grid md:grid-cols-3 gap-5 mt-5">
-            {courses.slice(0, 6).map((course) => (
-              <CourseCard
-                key={course._id || course.id}
-                course={course}
-                onEnroll={handleEnrollClick}
-                onOpenDetails={handleOpenDetails}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid md:grid-cols-3 gap-5 mt-5">
+              {displayedCourses.map((course) => (
+                <CourseCard
+                  key={course._id || course.id}
+                  course={course}
+                  onEnroll={handleEnrollClick}
+                  onOpenDetails={handleOpenDetails}
+                />
+              ))}
+            </div>
+
+            {courses.length > INITIAL_COURSE_LIMIT && (
+              <div className="mt-8 flex justify-center">
+                <button
+                  type="button"
+                  onClick={toggleShowAllCourses}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-sm font-medium shadow-sm hover:shadow-md hover:shadow-sky-200 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer"
+                >
+                  <span>{showAllCourses ? "View less" : "View all courses"}</span>
+                  {showAllCourses ? (
+                    <ChevronUp className="w-4 h-4 text-white" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-sky-100" />
+                  )}
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <div className="mt-5 bg-white rounded-2xl border border-dashed border-slate-200 p-10 text-center text-sm text-slate-400">
             No courses available yet — check back soon.
