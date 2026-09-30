@@ -15,6 +15,7 @@ import api from "../../api/axios";
 import ProgramRegistrations from "../../components/admin/ProgramRegistrations";
 
 const PROGRAM_TYPES = ["WEBINAR", "INTERNSHIP", "WORKSHOP"];
+const display = { fontFamily: "'Space Grotesk', sans-serif" };
 
 const emptyForm = {
   title: "",
@@ -337,7 +338,10 @@ const AdminProgramManagement = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div
+    className="space-y-6"
+    style={display}
+    >
       {/* Toast / Message */}
       {message && (
         <div
@@ -373,9 +377,12 @@ const AdminProgramManagement = () => {
             Admin
           </p>
 
-          <h1 className="mt-1 text-2xl font-semibold text-slate-900">
-            Program Management
-          </h1>
+           <h1
+              className="mt-1 text-2xl font-semibold text-slate-900"
+              style={display}
+            >
+              Program Management
+            </h1>
 
           <p className="mt-1 text-sm text-slate-500">
             Create, edit and manage webinars, internships and
