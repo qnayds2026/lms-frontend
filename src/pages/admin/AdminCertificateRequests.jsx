@@ -43,6 +43,8 @@ const AdminCertificateRequests = () => {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [programFilter, setProgramFilter] = useState("ALL");
   const [matchingFilter, setMatchingFilter] = useState("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(8);
 
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
@@ -156,6 +158,45 @@ const AdminCertificateRequests = () => {
     programFilter,
     matchingFilter,
   ]);
+
+useEffect(() => {
+setCurrentPage(1);
+}, [
+  search,
+  statusFilter,
+  programFilter,
+  matchingFilter,
+  itemsPerPage,
+]);
+  // -----------------------------------------
+// PAGINATION
+// -----------------------------------------
+const totalPages = Math.ceil(
+  filteredRequests.length / itemsPerPage
+);
+
+const paginatedRequests = useMemo(() => {
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+
+  return filteredRequests.slice(startIndex, endIndex);
+}, [filteredRequests, currentPage, itemsPerPage]);
+
+const startItem =
+  filteredRequests.length === 0
+    ? 0
+    : (currentPage - 1) * itemsPerPage + 1;
+
+const endItem = Math.min(
+  currentPage * itemsPerPage,
+  filteredRequests.length
+);
+
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages) {
+    setCurrentPage(page);
+  }
+};
 
   // -----------------------------------------
   // VIEW DETAILS
@@ -539,7 +580,7 @@ const AdminCertificateRequests = () => {
                 </thead>
 
                 <tbody className="divide-y divide-slate-100">
-                  {filteredRequests.map((request) => (
+                  {paginatedRequests.map((request) => (
                     <tr
                       key={request.id}
                       className="transition hover:bg-slate-50"
@@ -666,9 +707,105 @@ const AdminCertificateRequests = () => {
                   ))}
                 </tbody>
               </table>
-            </div>
-          </div>
-        )}
+</div>
+</div>
+ )}
+
+{/* Pagination */}
+<div className="flex items-center justify-between border-t border-slate-100 px-5 py-3">
+  {/* Showing count */}
+  <p className="text-xs text-slate-400">
+    showing {startItem}–{endItem} of {filteredRequests.length}
+  </p>
+
+  <div className="flex items-center gap-1">
+
+    {/* Previous */}
+    <button
+      type="button"
+      onClick={() => goToPage(currentPage - 1)}
+      disabled={currentPage === 1}
+      className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+    >
+      ‹
+    </button>
+
+    {/* Page 1 */}
+    <button
+      type="button"
+      onClick={() => goToPage(1)}
+      className={`h-8 w-8 rounded-lg text-xs font-medium ${
+        currentPage === 1
+          ? "bg-sky-600 text-white"
+          : "text-slate-500 hover:bg-slate-50"
+      }`}
+    >
+      1
+    </button>
+
+    {/* Left dots */}
+    {currentPage > 3 && (
+      <span className="px-1 text-xs text-slate-400">...</span>
+    )}
+
+    {/* Middle pages */}
+    {Array.from(
+      new Set(
+        [
+          currentPage - 1,
+          currentPage,
+          currentPage + 1,
+        ].filter(
+          (page) => page > 1 && page < totalPages
+        )
+      )
+    ).map((page) => (
+      <button
+        key={page}
+        type="button"
+        onClick={() => goToPage(page)}
+        className={`h-8 w-8 rounded-lg text-xs font-medium ${
+          currentPage === page
+            ? "bg-sky-600 text-white"
+            : "text-slate-500 hover:bg-slate-50"
+        }`}
+      >
+        {page}
+      </button>
+    ))}
+
+    {/* Right dots */}
+    {currentPage < totalPages - 2 && (
+      <span className="px-1 text-xs text-slate-400">...</span>
+    )}
+
+    {/* Last Page */}
+    {totalPages > 1 && (
+      <button
+        type="button"
+        onClick={() => goToPage(totalPages)}
+        className={`h-8 w-8 rounded-lg text-xs font-medium ${
+          currentPage === totalPages
+            ? "bg-sky-600 text-white"
+            : "text-slate-500 hover:bg-slate-50"
+        }`}
+      >
+        {totalPages}
+      </button>
+    )}
+
+    {/* Next */}
+    <button
+      type="button"
+      onClick={() => goToPage(currentPage + 1)}
+      disabled={currentPage === totalPages}
+      className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+    >
+      ›
+    </button>
+
+  </div>
+</div>
 
       {/* Details Modal */}
       {selectedRequest && (
@@ -855,6 +992,7 @@ const AdminCertificateRequests = () => {
       )}
     </div>
   );
+
 };
 
 export default AdminCertificateRequests;
