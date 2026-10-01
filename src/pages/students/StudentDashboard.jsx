@@ -21,8 +21,8 @@ import {
   Check,
   X,
   Share2,
-  ChevronDown,
-  ChevronUp,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import PaymentModal from "../../components/student/PaymentModal";
 
@@ -547,18 +547,23 @@ const StudentDashboard = () => {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [detailsCourseId, setDetailsCourseId] = useState(null);
-  const [showAllCourses, setShowAllCourses] = useState(false);
+  const [coursePage, setCoursePage] = useState(1);
   const coursesSectionRef = useRef(null);
 
-  const toggleShowAllCourses = () => {
-    if (showAllCourses && coursesSectionRef.current) {
+  const COURSES_PER_PAGE = 6;
+  const totalCoursePages = Math.max(1, Math.ceil(courses.length / COURSES_PER_PAGE));
+  const safeCurrentPage = Math.min(Math.max(1, coursePage), totalCoursePages);
+
+  const startIndex = (safeCurrentPage - 1) * COURSES_PER_PAGE;
+  const displayedCourses = courses.slice(startIndex, startIndex + COURSES_PER_PAGE);
+
+  const handleCoursePageChange = (newPage) => {
+    if (newPage < 1 || newPage > totalCoursePages || newPage === safeCurrentPage) return;
+    setCoursePage(newPage);
+    if (coursesSectionRef.current) {
       coursesSectionRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-    setShowAllCourses((prev) => !prev);
   };
-
-  const INITIAL_COURSE_LIMIT = 3;
-  const displayedCourses = showAllCourses ? courses : courses.slice(0, INITIAL_COURSE_LIMIT);
 
   const fetchDashboard = async () => {
     try {
@@ -746,7 +751,7 @@ const StudentDashboard = () => {
 
       {/* Explore courses */}
       <div className="mt-10" ref={coursesSectionRef}>
-        <div className="flex items-end justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
           <div>
             <p className="text-sky-600 text-xs font-medium" style={mono}>
               from_the_catalog
@@ -760,26 +765,39 @@ const StudentDashboard = () => {
           </div>
           {courses.length > 0 && (
             <span
-              className="text-xs font-medium px-3 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200"
+              className="text-xs font-medium px-3 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200 self-start sm:self-auto"
               style={mono}
             >
-              Showing {displayedCourses.length} of {courses.length} courses
+              Showing{" "}
+              {courses.length === 0
+                ? 0
+                : startIndex + 1 === Math.min(startIndex + COURSES_PER_PAGE, courses.length)
+                ? startIndex + 1
+                : `${startIndex + 1}–${Math.min(startIndex + COURSES_PER_PAGE, courses.length)}`}{" "}
+              of {courses.length} courses
             </span>
           )}
         </div>
 
         {coursesLoading ? (
-          <div className="grid md:grid-cols-3 gap-5 mt-5">
-            {[0, 1, 2].map((i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 mt-5">
+            {Array.from({ length: COURSES_PER_PAGE }).map((_, i) => (
               <div
                 key={i}
-                className="bg-white rounded-2xl border border-slate-200 h-48 animate-pulse"
-              />
+                className="bg-white rounded-2xl border border-slate-200 p-4 h-64 animate-pulse flex flex-col justify-between"
+              >
+                <div className="h-36 bg-slate-100 rounded-xl mb-3" />
+                <div className="space-y-2">
+                  <div className="h-4 bg-slate-100 rounded w-3/4" />
+                  <div className="h-3 bg-slate-100 rounded w-1/2" />
+                </div>
+                <div className="h-8 bg-slate-100 rounded-lg mt-3" />
+              </div>
             ))}
           </div>
         ) : courses.length > 0 ? (
           <>
-            <div className="grid md:grid-cols-3 gap-5 mt-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 mt-5">
               {displayedCourses.map((course) => (
                 <CourseCard
                   key={course._id || course.id}
@@ -790,20 +808,72 @@ const StudentDashboard = () => {
               ))}
             </div>
 
-            {courses.length > INITIAL_COURSE_LIMIT && (
-              <div className="mt-8 flex justify-center">
-                <button
-                  type="button"
-                  onClick={toggleShowAllCourses}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-sm font-medium shadow-sm hover:shadow-md hover:shadow-sky-200 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer"
-                >
-                  <span>{showAllCourses ? "View less" : "View all courses"}</span>
-                  {showAllCourses ? (
-                    <ChevronUp className="w-4 h-4 text-white" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-sky-100" />
-                  )}
-                </button>
+            {totalCoursePages > 1 && (
+              <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-200">
+                <p className="text-xs text-slate-500" style={mono}>
+                  Page {safeCurrentPage} of {totalCoursePages}
+                </p>
+
+                <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                  <button
+                    type="button"
+                    onClick={() => handleCoursePageChange(safeCurrentPage - 1)}
+                    disabled={safeCurrentPage === 1}
+                    aria-label="Previous page"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-sky-300 hover:text-sky-700 disabled:opacity-40 disabled:hover:border-slate-200 disabled:hover:bg-white disabled:hover:text-slate-600 disabled:cursor-not-allowed transition cursor-pointer"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Prev</span>
+                  </button>
+
+                  {Array.from({ length: totalCoursePages }, (_, i) => i + 1)
+                    .filter(
+                      (p) =>
+                        p === 1 ||
+                        p === totalCoursePages ||
+                        Math.abs(p - safeCurrentPage) <= 1,
+                    )
+                    .reduce((acc, p, idx, arr) => {
+                      if (idx > 0 && p - arr[idx - 1] > 1) acc.push("...");
+                      acc.push(p);
+                      return acc;
+                    }, [])
+                    .map((p, idx) =>
+                      p === "..." ? (
+                        <span
+                          key={`ellipsis-${idx}`}
+                          className="px-1.5 text-slate-300 text-sm font-medium"
+                        >
+                          …
+                        </span>
+                      ) : (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => handleCoursePageChange(p)}
+                          aria-current={p === safeCurrentPage ? "page" : undefined}
+                          className={`h-8 min-w-8 px-2.5 rounded-lg text-xs font-medium transition cursor-pointer ${
+                            p === safeCurrentPage
+                              ? "bg-sky-600 text-white shadow-sm font-semibold"
+                              : "border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-sky-300 hover:text-sky-700"
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      ),
+                    )}
+
+                  <button
+                    type="button"
+                    onClick={() => handleCoursePageChange(safeCurrentPage + 1)}
+                    disabled={safeCurrentPage === totalCoursePages}
+                    aria-label="Next page"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-sky-300 hover:text-sky-700 disabled:opacity-40 disabled:hover:border-slate-200 disabled:hover:bg-white disabled:hover:text-slate-600 disabled:cursor-not-allowed transition cursor-pointer"
+                  >
+                    <span className="hidden sm:inline">Next</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             )}
           </>
