@@ -814,12 +814,16 @@ const AdminManageRecordings = () => {
                       This removes the need for a second, confusing "+" button. */}
                   <button
                     onClick={() => {
-                      const count = noteCounts[module.id];
-                      if (count === 0) {
-                        setOpenNotes((prev) => new Set(prev).add(module.id));
-                        moduleNotesRefs.current[module.id]?.openAdd();
-                      } else {
+                      if (notesOpen) {
                         toggleNotes(module.id);
+                      } else {
+                        const count = noteCounts[module.id];
+                        if (count === 0) {
+                          setOpenNotes((prev) => new Set(prev).add(module.id));
+                          moduleNotesRefs.current[module.id]?.openAdd();
+                        } else {
+                          toggleNotes(module.id);
+                        }
                       }
                     }}
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap ${
@@ -843,14 +847,12 @@ const AdminManageRecordings = () => {
                         {noteCounts[module.id]}
                       </span>
                     )}
-                    {noteCounts[module.id] === 0 ? (
+                    {notesOpen ? (
+                      <ChevronDown className="h-3.5 w-3.5 rotate-180 transition-transform" />
+                    ) : noteCounts[module.id] === 0 ? (
                       <Plus className="h-3.5 w-3.5" />
                     ) : (
-                      <ChevronDown
-                        className={`h-3.5 w-3.5 transition-transform ${
-                          notesOpen ? "rotate-180" : ""
-                        }`}
-                      />
+                      <ChevronDown className="h-3.5 w-3.5 transition-transform" />
                     )}
                   </button>
 
@@ -965,6 +967,7 @@ const AdminManageRecordings = () => {
                   }}
                   moduleId={module.id}
                   editable
+                  onClose={() => toggleNotes(module.id)}
                   onCountChange={(count) =>
                     setNoteCounts((prev) => ({ ...prev, [module.id]: count }))
                   }

@@ -31,6 +31,8 @@ import AdminManageRecordings from "./pages/admin/AdminManageRecording";
 import AdminManageLiveClasses from "./pages/admin/AdminManageLiveclass";
 import UsersList from "./pages/admin/UsersList";
 import AdminPaymentList from "./pages/admin/AdminPaymentList";
+import AdminProgramManagement from "./pages/admin/AdminProgramManagement";
+import AdminCertificates from "./pages/admin/AdminCertificates";
 import InstructorManageAttachments from "./pages/instructors/InstructorManageAttachments";
 import CourseDetail from "./pages/CourseDetails";
 import ActivateAccount from "./pages/ActivateAccount";
@@ -94,6 +96,9 @@ const App = () => {
           <Route path="users" element={<UsersList />} />
           <Route path="instructors/:id" element={<AdminInstructorDetail />} />
           <Route path="payments" element={<AdminPaymentList />} />
+          <Route path="programs" element={<AdminProgramManagement />} />
+          
+          <Route path="certificates" element={<AdminCertificates />} />
           <Route
             path="courses/:courseId/recordings"
             element={<AdminManageRecordings />}
@@ -104,6 +109,10 @@ const App = () => {
           />
         </Route>
         {/* Auth pages rendered standalone, without the public Navbar/Footer */}
+        <Route
+          path="/verify-certificate"
+          element={<CertificateVerification />}
+        />
         <Route
           path="/verify-certificate/:verificationCode"
           element={<CertificateVerification />}

@@ -1,11 +1,12 @@
 import { useEffect, useState, forwardRef, useImperativeHandle } from "react";
+import { X } from "lucide-react";
 import axios from "../../api/axios";
 
 import NoteCard from "./NoteCard";
 import AddNoteModal from "./AddNoteModal";
 
 const ModuleNotes = forwardRef(function ModuleNotes(
-  { moduleId, editable = true, onCountChange },
+  { moduleId, editable = true, onCountChange, onClose },
   ref,
 ) {
   const [notes, setNotes] = useState([]);
@@ -147,14 +148,29 @@ const ModuleNotes = forwardRef(function ModuleNotes(
             </p>
           </div>
 
-          {editable && (
-            <button
-              onClick={handleAdd}
-              className="rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-sky-700"
-            >
-              + Add Resource
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {editable && (
+              <button
+                type="button"
+                onClick={handleAdd}
+                className="rounded-xl bg-sky-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-sky-700"
+              >
+                + Add Resource
+              </button>
+            )}
+
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                title="Close resources"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-100 hover:text-slate-900"
+              >
+                <X className="h-4 w-4" />
+                Close
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Loading */}
@@ -186,28 +202,57 @@ const ModuleNotes = forwardRef(function ModuleNotes(
               help students understand this module better.
             </p>
 
-            {editable && (
-              <button
-                onClick={handleAdd}
-                className="mt-6 rounded-xl bg-sky-600 px-6 py-3 font-medium text-white transition hover:bg-sky-700"
-              >
-                + Add First Resource
-              </button>
-            )}
+            <div className="mt-6 flex items-center gap-3">
+              {editable && (
+                <button
+                  type="button"
+                  onClick={handleAdd}
+                  className="rounded-xl bg-sky-600 px-6 py-2.5 font-medium text-white transition hover:bg-sky-700"
+                >
+                  + Add First Resource
+                </button>
+              )}
+
+              {onClose && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-900"
+                >
+                  <X className="h-4 w-4" />
+                  Close
+                </button>
+              )}
+            </div>
           </div>
         ) : (
           /* Notes */
-          <div className="divide-y divide-slate-200 px-6">
-            {notes.map((note) => (
-              <NoteCard
-                key={note.id}
-                note={note}
-                editable={editable}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            ))}
-          </div>
+          <>
+            <div className="divide-y divide-slate-200 px-6">
+              {notes.map((note) => (
+                <NoteCard
+                  key={note.id}
+                  note={note}
+                  editable={editable}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
+
+            {onClose && (
+              <div className="flex justify-end border-t border-slate-100 bg-slate-50/50 px-6 py-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+                >
+                  <X className="h-3.5 w-3.5" />
+                  Close Resources
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 
