@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   CheckCircle2,
@@ -121,22 +121,18 @@ function ReviewsSection({ courseId }) {
 
       await fetchReviews();
     } catch (err) {
-      setError(
-        err?.response?.data?.error ||
-        "Failed to save your review."
-      );
+      setError(err?.response?.data?.error || "Failed to save your review.");
     } finally {
       setSaving(false);
     }
   };
 
   const otherReviews = (data?.reviews || []).filter(
-    (r) => r.id !== data?.myReview?.id
+    (r) => r.id !== data?.myReview?.id,
   );
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-
       {/* ==================================================
           COMPACT REVIEW HEADER
       ================================================== */}
@@ -147,10 +143,8 @@ function ReviewsSection({ courseId }) {
         className="w-full px-5 py-4 sm:px-6 sm:py-5 text-left hover:bg-slate-50 transition-colors"
       >
         <div className="flex items-center justify-between gap-4">
-
           {/* Left */}
           <div className="flex items-center gap-3 min-w-0">
-
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-50">
               <MessageSquare className="h-5 w-5 text-sky-600" />
             </div>
@@ -169,27 +163,20 @@ function ReviewsSection({ courseId }) {
 
           {/* Right */}
           <div className="flex items-center gap-3 shrink-0">
-
             {/* Rating */}
             <div className="hidden sm:flex items-center gap-2">
-
               <span
                 className="text-lg font-semibold text-slate-900"
                 style={display}
               >
-                {data?.totalReviews > 0
-                  ? data.averageRating.toFixed(1)
-                  : "—"}
+                {data?.totalReviews > 0 ? data.averageRating.toFixed(1) : "—"}
               </span>
 
               <div className="flex">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className={`h-3.5 w-3.5 ${i <
-                        Math.round(
-                          data?.averageRating || 0
-                        )
+                    className={`h-3.5 w-3.5 ${i < Math.round(data?.averageRating || 0)
                         ? "fill-amber-400 text-amber-400"
                         : "text-slate-200"
                       }`}
@@ -216,19 +203,14 @@ function ReviewsSection({ courseId }) {
             className="text-lg font-semibold text-slate-900"
             style={display}
           >
-            {data?.totalReviews > 0
-              ? data.averageRating.toFixed(1)
-              : "—"}
+            {data?.totalReviews > 0 ? data.averageRating.toFixed(1) : "—"}
           </span>
 
           <div className="flex">
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
-                className={`h-3.5 w-3.5 ${i <
-                    Math.round(
-                      data?.averageRating || 0
-                    )
+                className={`h-3.5 w-3.5 ${i < Math.round(data?.averageRating || 0)
                     ? "fill-amber-400 text-amber-400"
                     : "text-slate-200"
                   }`}
@@ -248,7 +230,6 @@ function ReviewsSection({ courseId }) {
 
       {isOpen && (
         <div className="border-t border-slate-100 px-5 py-5 sm:px-6">
-
           {loading ? (
             <div className="h-24 bg-slate-50 rounded-xl animate-pulse" />
           ) : (
@@ -258,7 +239,6 @@ function ReviewsSection({ courseId }) {
               ================================= */}
 
               <div className="flex items-center gap-4">
-
                 <div className="text-center">
                   <div
                     className="text-4xl font-bold text-slate-900"
@@ -273,10 +253,7 @@ function ReviewsSection({ courseId }) {
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        className={`h-4 w-4 ${i <
-                            Math.round(
-                              data?.averageRating || 0
-                            )
+                        className={`h-4 w-4 ${i < Math.round(data?.averageRating || 0)
                             ? "fill-amber-400 text-amber-400"
                             : "text-slate-200"
                           }`}
@@ -288,7 +265,6 @@ function ReviewsSection({ courseId }) {
                     {data?.totalReviews || 0} reviews
                   </p>
                 </div>
-
               </div>
 
               {/* ================================
@@ -299,30 +275,22 @@ function ReviewsSection({ courseId }) {
                 onSubmit={handleSubmit}
                 className="mt-6 pt-5 border-t border-slate-100"
               >
-
                 <p
                   className="text-xs font-semibold text-slate-500 uppercase tracking-wide"
                   style={mono}
                 >
-                  {data?.myReview
-                    ? "Edit your review"
-                    : "Rate this course"}
+                  {data?.myReview ? "Edit your review" : "Rate this course"}
                 </p>
 
                 {/* Stars */}
                 <div className="mt-3">
-                  <StarRatingInput
-                    value={myRating}
-                    onChange={setMyRating}
-                  />
+                  <StarRatingInput value={myRating} onChange={setMyRating} />
                 </div>
 
                 {/* Comment */}
                 <textarea
                   value={myComment}
-                  onChange={(e) =>
-                    setMyComment(e.target.value)
-                  }
+                  onChange={(e) => setMyComment(e.target.value)}
                   placeholder="Share your thoughts about this course..."
                   rows={3}
                   className="
@@ -344,11 +312,7 @@ function ReviewsSection({ courseId }) {
                 />
 
                 {/* Error */}
-                {error && (
-                  <p className="mt-2 text-xs text-red-600">
-                    {error}
-                  </p>
-                )}
+                {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
 
                 {/* Submit */}
                 <button
@@ -386,7 +350,6 @@ function ReviewsSection({ courseId }) {
 
               {otherReviews.length > 0 && (
                 <div className="mt-6 pt-5 border-t border-slate-100">
-
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-sm font-semibold text-slate-900">
                       Student Reviews
@@ -398,15 +361,11 @@ function ReviewsSection({ courseId }) {
                   </div>
 
                   <div className="space-y-4">
-
                     {otherReviews.map((review) => (
-                      <div
-                        key={review.id}
-                        className="flex gap-3"
-                      >
-
+                      <div key={review.id} className="flex gap-3">
                         {/* Avatar */}
-                        <div className="
+                        <div
+                          className="
                           h-9
                           w-9
                           shrink-0
@@ -418,35 +377,29 @@ function ReviewsSection({ courseId }) {
                           justify-center
                           text-xs
                           font-semibold
-                        ">
-                          {review.student?.name?.[0]?.toUpperCase() ||
-                            "?"}
+                        "
+                        >
+                          {review.student?.name?.[0]?.toUpperCase() || "?"}
                         </div>
 
                         {/* Content */}
                         <div className="flex-1 min-w-0">
-
                           <div className="flex items-center gap-2 flex-wrap">
-
                             <p className="text-sm font-semibold text-slate-900">
-                              {review.student?.name ||
-                                "Student"}
+                              {review.student?.name || "Student"}
                             </p>
 
                             <div className="flex">
-                              {[...Array(5)].map(
-                                (_, i) => (
-                                  <Star
-                                    key={i}
-                                    className={`h-3.5 w-3.5 ${i < review.rating
-                                        ? "fill-amber-400 text-amber-400"
-                                        : "text-slate-200"
-                                      }`}
-                                  />
-                                )
-                              )}
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-3.5 w-3.5 ${i < review.rating
+                                      ? "fill-amber-400 text-amber-400"
+                                      : "text-slate-200"
+                                    }`}
+                                />
+                              ))}
                             </div>
-
                           </div>
 
                           {review.comment && (
@@ -454,30 +407,25 @@ function ReviewsSection({ courseId }) {
                               {review.comment}
                             </p>
                           )}
-
                         </div>
                       </div>
                     ))}
-
                   </div>
                 </div>
               )}
 
               {/* No Reviews */}
-              {otherReviews.length === 0 &&
-                !data?.myReview && (
-                  <div className="mt-5 rounded-xl bg-slate-50 px-4 py-5 text-center">
-                    <MessageSquare className="mx-auto h-5 w-5 text-slate-300" />
+              {otherReviews.length === 0 && !data?.myReview && (
+                <div className="mt-5 rounded-xl bg-slate-50 px-4 py-5 text-center">
+                  <MessageSquare className="mx-auto h-5 w-5 text-slate-300" />
 
-                    <p className="mt-2 text-sm text-slate-500">
-                      No reviews yet.
-                    </p>
+                  <p className="mt-2 text-sm text-slate-500">No reviews yet.</p>
 
-                    <p className="mt-1 text-xs text-slate-400">
-                      Be the first student to review this course.
-                    </p>
-                  </div>
-                )}
+                  <p className="mt-1 text-xs text-slate-400">
+                    Be the first student to review this course.
+                  </p>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -564,19 +512,15 @@ const StudentRecordings = () => {
 
   // Progress state belongs here
   const [courseProgress, setCourseProgress] = useState(null);
-  const [completingRecording, setCompletingRecording] =
-    useState(false);
+  const [completingRecording, setCompletingRecording] = useState(false);
 
   // Level & course achievement share modal state
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [selectedShareLevel, setSelectedShareLevel] = useState(null);
-  const [shareCertificate, setShareCertificate] = useState(null);
 
-  const [activeRecordingId, setActiveRecordingId] =
-    useState(null);
+  const [activeRecordingId, setActiveRecordingId] = useState(null);
 
-  const [expandedModuleIds, setExpandedModuleIds] =
-    useState(new Set());
+  const [expandedModuleIds, setExpandedModuleIds] = useState(new Set());
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -585,28 +529,26 @@ const StudentRecordings = () => {
   // GET COURSE PROGRESS
   // ======================================================
 
-  const fetchCourseProgress = async () => {
+  const fetchCourseProgress = useCallback(async () => {
     if (!courseId) return;
 
     try {
-      const res = await api.get(
-        `/progress/course/${courseId}`
-      );
+      const res = await api.get(`/progress/course/${courseId}`);
 
-      setCourseProgress(res.data?.data || null);
+      const progress = res.data?.data || null;
+      setCourseProgress(progress);
+      return progress;
     } catch (err) {
-      console.error(
-        "Failed to fetch course progress:",
-        err
-      );
+      console.error("Failed to fetch course progress:", err);
+      return null;
     }
-  };
+  }, [courseId]);
 
   // ======================================================
   // NATURAL SORTING HELPER
   // ======================================================
 
-  const sortRecordingsNaturally = (recordings) => {
+  const sortRecordingsNaturally = useCallback((recordings) => {
     return [...recordings].sort((a, b) => {
       const posA = a.position ?? 0;
       const posB = b.position ?? 0;
@@ -621,26 +563,28 @@ const StudentRecordings = () => {
 
       return (a.id ?? 0) - (b.id ?? 0);
     });
-  };
+  }, []);
 
   // ======================================================
   // FETCH COURSE + RECORDINGS
   // ======================================================
 
-  useEffect(() => {
-    async function fetchCourseAndRecordings() {
-      setLoading(true);
-      setError("");
+  const fetchCourseAndRecordings = useCallback(
+    async ({ initialize = false } = {}) => {
+      if (!courseId) return null;
 
       try {
-        const courseRes = await api.get(
-          `/courses/${courseId}`
-        );
+        const courseRes = await api.get(`/courses/${courseId}`);
+
+        if (initialize) {
+          setLoading(true);
+          setError("");
+        }
 
         const courseData = courseRes.data;
         setCourse(courseData);
 
-        // 1. Strictly sort modules by position ASC, then id ASC
+        // Keep modules in position/id order before loading their lesson data.
         const moduleList = (courseData?.modules || [])
           .slice()
           .sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.id - b.id);
@@ -652,37 +596,27 @@ const StudentRecordings = () => {
               .then((res) => (Array.isArray(res.data) ? res.data : []))
               .catch(() => []);
 
-            // Ensure position is preserved from courseData if rawRecs omitted it
+            // Preserve course module recording positions when the recordings endpoint omits them.
             const recordings = sortRecordingsNaturally(
               rawRecs.map((r) => {
-                const matched = (m.recordings || []).find((mr) => mr.id === r.id);
+                const matched = (m.recordings || []).find(
+                  (mr) => mr.id === r.id,
+                );
                 return {
                   ...r,
                   position: r.position ?? matched?.position ?? 0,
                 };
-              })
+              }),
             );
 
             const attachments = await api
-              .get(
-                `/module-attachments/module/${m.id}`
-              )
-              .then(
-                (res) =>
-                  res.data?.data ||
-                  res.data ||
-                  []
-              )
+              .get(`/module-attachments/module/${m.id}`)
+              .then((res) => res.data?.data || res.data || [])
               .catch(() => []);
 
             const notes = await api
               .get(`/notes/module/${m.id}`)
-              .then(
-                (res) =>
-                  res.data?.data ||
-                  res.data ||
-                  []
-              )
+              .then((res) => res.data?.data || res.data || [])
               .catch(() => []);
 
             return {
@@ -693,67 +627,78 @@ const StudentRecordings = () => {
               attachments,
               notes,
             };
-          })
+          }),
         );
 
         setModules(moduleData);
 
-        // Fetch course progress immediately so we can open at the student's next uncompleted lesson
-        let completedCount = 0;
-        try {
-          const progRes = await api.get(`/progress/course/${courseId}`);
-          const progData = progRes.data?.data || null;
-          setCourseProgress(progData);
-          completedCount = Math.max(0, Number(progData?.completedLessons) || 0);
-        } catch (e) {
-          // Progress fetch handled in separate effect
-        }
-
-        const flatRecs = moduleData.flatMap((mod) =>
-          mod.recordings.map((r) => ({
-            ...r,
-            moduleId: mod.id,
-            moduleTitle: mod.title,
-          }))
+        const progress = await fetchCourseProgress();
+        const completedCount = Math.max(
+          0,
+          Number(progress?.completedLessons) || 0,
         );
 
-        // Target next uncompleted lesson in exact order, or first lesson if starting fresh
-        const targetRec =
-          (completedCount > 0 && completedCount < flatRecs.length
-            ? flatRecs[completedCount]
-            : null) ||
-          flatRecs[0];
+        if (initialize) {
+          const flatRecs = moduleData.flatMap((mod) =>
+            mod.recordings.map((r) => ({
+              ...r,
+              moduleId: mod.id,
+              moduleTitle: mod.title,
+            })),
+          );
 
-        if (targetRec) {
-          setActiveRecordingId(targetRec.id);
-          if (targetRec.moduleId) {
-            setExpandedModuleIds(new Set([targetRec.moduleId]));
+          const targetRec =
+            (completedCount > 0 && completedCount < flatRecs.length
+              ? flatRecs[completedCount]
+              : null) || flatRecs[0];
+
+          if (targetRec) {
+            setActiveRecordingId(targetRec.id);
+            if (targetRec.moduleId) {
+              setExpandedModuleIds(new Set([targetRec.moduleId]));
+            }
           }
         }
+
+        return { modules: moduleData, progress };
       } catch (err) {
-        setError(
-          err?.response?.data?.message ||
-          "Failed to load this course. Please try again."
-        );
+        if (initialize) {
+          setError(
+            err?.response?.data?.message ||
+            "Failed to load this course. Please try again.",
+          );
+        } else {
+          console.error("Failed to refresh course recordings:", err);
+        }
+        return null;
       } finally {
-        setLoading(false);
+        if (initialize) {
+          setLoading(false);
+        }
       }
-    }
-
-    if (courseId) {
-      fetchCourseAndRecordings();
-    }
-  }, [courseId]);
-
-  // ======================================================
-  // FETCH PROGRESS
-  // ======================================================
+    },
+    [courseId, fetchCourseProgress, sortRecordingsNaturally],
+  );
 
   useEffect(() => {
-    if (courseId) {
-      fetchCourseProgress();
-    }
-  }, [courseId]);
+    const timeoutId = window.setTimeout(() => {
+      fetchCourseAndRecordings({ initialize: true });
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchCourseAndRecordings]);
+
+  useEffect(() => {
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") {
+        fetchCourseAndRecordings();
+      }
+    };
+
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    return () =>
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+  }, [fetchCourseAndRecordings]);
 
   // ======================================================
   // RECORDINGS LIST IN STRICT SEQUENTIAL ORDER
@@ -764,11 +709,11 @@ const StudentRecordings = () => {
       ...r,
       moduleId: m.id,
       moduleTitle: m.title,
-    }))
+    })),
   );
 
   const activeIndex = allRecordings.findIndex(
-    (r) => Number(r.id) === Number(activeRecordingId)
+    (r) => Number(r.id) === Number(activeRecordingId),
   );
 
   const activeRecording =
@@ -776,7 +721,7 @@ const StudentRecordings = () => {
 
   const completedLessonsCount = Math.max(
     0,
-    Number(courseProgress?.completedLessons) || 0
+    Number(courseProgress?.completedLessons) || 0,
   );
 
   const isCurrentLessonCompleted =
@@ -800,26 +745,41 @@ const StudentRecordings = () => {
       setCompletingRecording(true);
 
       const completeRes = await api.post(
-        `/progress/recordings/${activeRecordingId}/complete`
+        `/progress/recordings/${activeRecordingId}/complete`,
       );
       const resData = completeRes?.data?.data;
-      if (resData?.certificate) {
-        setShareCertificate(resData.certificate);
-      }
 
-      // Refresh overall course progress
-      await fetchCourseProgress();
+      // Refresh lesson data and progress without resetting the active lesson.
+      const refreshedData = await fetchCourseAndRecordings();
+      const refreshedModules = refreshedData?.modules || modules;
+      const refreshedRecordings = refreshedModules.flatMap((module) =>
+        module.recordings.map((recording) => ({
+          ...recording,
+          moduleId: module.id,
+          moduleTitle: module.title,
+        })),
+      );
 
-      // Check if this recording completion finished a level or the course
-      const currModule = modules.find((m) => m.id === activeRecording?.moduleId);
+      // Keep level celebrations separate from course completion/certificates.
+      const completedRecording = refreshedRecordings.find(
+        (recording) => Number(recording.id) === Number(activeRecordingId),
+      );
+      const currModule = refreshedModules.find(
+        (module) =>
+          Number(module.id) ===
+          Number(completedRecording?.moduleId || activeRecording?.moduleId),
+      );
       if (currModule) {
         const moduleRecordings = currModule.recordings || [];
         const isLastInModule =
           moduleRecordings.length > 0 &&
-          moduleRecordings[moduleRecordings.length - 1]?.id === Number(activeRecordingId);
+          Number(moduleRecordings[moduleRecordings.length - 1]?.id) ===
+          Number(activeRecordingId);
 
-        if (isLastInModule || resData?.courseCompleted) {
-          const moduleIndex = modules.findIndex((m) => m.id === currModule.id);
+        if (isLastInModule && !resData?.courseCompleted) {
+          const moduleIndex = refreshedModules.findIndex(
+            (module) => module.id === currModule.id,
+          );
           setSelectedShareLevel({
             ...currModule,
             level: moduleIndex !== -1 ? moduleIndex + 1 : 1,
@@ -830,33 +790,27 @@ const StudentRecordings = () => {
       }
 
       // Find current recording index in sequential order
-      const currIdx = allRecordings.findIndex(
-        (r) => Number(r.id) === Number(activeRecordingId)
+      const currIdx = refreshedRecordings.findIndex(
+        (r) => Number(r.id) === Number(activeRecordingId),
       );
 
-      if (currIdx !== -1 && currIdx < allRecordings.length - 1) {
-        const nextRecording = allRecordings[currIdx + 1];
+      if (currIdx !== -1 && currIdx < refreshedRecordings.length - 1) {
+        const nextRecording = refreshedRecordings[currIdx + 1];
         setActiveRecordingId(nextRecording.id);
 
         if (nextRecording.moduleId) {
           setExpandedModuleIds(
-            (prev) => new Set([...prev, nextRecording.moduleId])
+            (prev) => new Set([...prev, nextRecording.moduleId]),
           );
         }
 
         window.scrollTo({ top: 0, behavior: "smooth" });
-      } else if (currIdx !== -1 && currIdx === allRecordings.length - 1) {
-        // Full course completed: AchievementShare modal will display with celebratory confetti!
       }
     } catch (err) {
-      console.error(
-        "Failed to complete recording:",
-        err
-      );
+      console.error("Failed to complete recording:", err);
 
       alert(
-        err?.response?.data?.message ||
-        "Failed to update lesson progress."
+        err?.response?.data?.message || "Failed to update lesson progress.",
       );
     } finally {
       setCompletingRecording(false);
@@ -903,7 +857,7 @@ const StudentRecordings = () => {
         urlObj.searchParams.set("enablejsapi", "1");
         return urlObj.toString();
       }
-    } catch (e) {}
+    } catch (e) { }
     return url;
   };
 
@@ -924,11 +878,13 @@ const StudentRecordings = () => {
             handleCompleteRecording();
           }
         }
-      } catch (e) {}
+      } catch (e) { }
     };
 
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
+    // allRecordings changes with lesson state, keeping this handler current.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeRecordingId, completingRecording, allRecordings]);
 
   // ======================================================
@@ -1022,8 +978,6 @@ const StudentRecordings = () => {
           COURSE PROGRESS
       ================================================== */}
 
-
-
       {/* ==================================================
           MAIN CONTENT
       ================================================== */}
@@ -1044,14 +998,12 @@ const StudentRecordings = () => {
           <div className="relative w-full overflow-hidden rounded-xl sm:rounded-2xl bg-slate-900 shadow-lg shadow-slate-200">
             <div
               className={
-                activeRecording?.provider ===
-                  "GOOGLE_DRIVE"
+                activeRecording?.provider === "GOOGLE_DRIVE"
                   ? "w-full"
                   : "aspect-video w-full"
               }
               style={
-                activeRecording?.provider ===
-                  "GOOGLE_DRIVE"
+                activeRecording?.provider === "GOOGLE_DRIVE"
                   ? { paddingBottom: "68%" }
                   : undefined
               }
@@ -1074,8 +1026,7 @@ const StudentRecordings = () => {
                 </div>
               )}
 
-              {activeRecording?.provider ===
-                "GOOGLE_DRIVE" &&
+              {activeRecording?.provider === "GOOGLE_DRIVE" &&
                 activeRecording?.embedUrl && (
                   <div
                     className="absolute top-0 right-0 h-14 w-16 z-10"
@@ -1102,8 +1053,7 @@ const StudentRecordings = () => {
               className="mt-3 text-2xl font-semibold text-slate-900"
               style={display}
             >
-              {activeRecording?.title ||
-                "Select a lesson"}
+              {activeRecording?.title || "Select a lesson"}
             </h1>
 
             {activeRecording?.description && (
@@ -1113,19 +1063,14 @@ const StudentRecordings = () => {
             )}
 
             {allRecordings.length > 0 && (
-              <p
-                className="mt-2 text-xs text-slate-400"
-                style={mono}
-              >
-                Lesson {activeIndex + 1} of{" "}
-                {allRecordings.length}
+              <p className="mt-2 text-xs text-slate-400" style={mono}>
+                Lesson {activeIndex + 1} of {allRecordings.length}
                 {activeRecording?.moduleTitle
                   ? ` · ${activeRecording.moduleTitle}`
                   : ""}
               </p>
             )}
           </div>
-
 
           {/* ==================================================
               LESSON CONTROLS & COMPLETION
@@ -1135,11 +1080,10 @@ const StudentRecordings = () => {
             <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm">
               <div className="flex items-start gap-3">
                 <div
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-                    isCurrentLessonCompleted
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${isCurrentLessonCompleted
                       ? "bg-emerald-50 text-emerald-600"
                       : "bg-sky-50 text-sky-600"
-                  }`}
+                    }`}
                 >
                   <CheckCircle2 className="h-5 w-5" />
                 </div>
@@ -1212,8 +1156,8 @@ const StudentRecordings = () => {
                     {completingRecording
                       ? "Saving..."
                       : hasNextLesson
-                      ? "Mark Complete & Next"
-                      : "Mark as Complete"}
+                        ? "Mark Complete & Next"
+                        : "Mark as Complete"}
                     {hasNextLesson && !completingRecording && (
                       <ArrowRight className="h-4 w-4 ml-0.5" />
                     )}
@@ -1262,10 +1206,7 @@ const StudentRecordings = () => {
               setShareModalOpen(true);
             }}
           />
-
         </div>
-
-
 
         {/* ==================================================
             COURSE CONTENT SIDEBAR
@@ -1293,8 +1234,7 @@ const StudentRecordings = () => {
               </h2>
 
               <p className="text-xs text-slate-500 mt-0.5 truncate">
-                {allRecordings.length} lessons across{" "}
-                {modules.length} modules
+                {allRecordings.length} lessons across {modules.length} modules
               </p>
             </div>
           </div>
@@ -1330,26 +1270,19 @@ const StudentRecordings = () => {
 
                       <p className="mt-0.5 text-[11px] text-slate-400 normal-case">
                         {module.recordings.length} lesson
-                        {module.recordings.length === 1
-                          ? ""
-                          : "s"}
+                        {module.recordings.length === 1 ? "" : "s"}
                         {module.notes?.length > 0 &&
-                          ` · ${module.notes.length} note${module.notes.length === 1
-                            ? ""
-                            : "s"
+                          ` · ${module.notes.length} note${module.notes.length === 1 ? "" : "s"
                           }`}
                         {module.attachments?.length > 0 &&
-                          ` · ${module.attachments.length} file${module.attachments.length === 1
-                            ? ""
-                            : "s"
+                          ` · ${module.attachments.length} file${module.attachments.length === 1 ? "" : "s"
                           }`}
                       </p>
                     </div>
 
                     <ChevronDown
-                      className={`h-4 w-4 text-sky-500 shrink-0 mt-0.5 transition-transform duration-200 ${
-                        isExpanded ? "rotate-180" : ""
-                      }`}
+                      className={`h-4 w-4 text-sky-500 shrink-0 mt-0.5 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""
+                        }`}
                     />
                   </button>
 
@@ -1363,64 +1296,60 @@ const StudentRecordings = () => {
                           </li>
                         )}
 
-                        {module.recordings.map(
-                          (rec) => {
-                            const isActive =
-                              Number(rec.id) === Number(activeRecordingId);
+                        {module.recordings.map((rec) => {
+                          const isActive =
+                            Number(rec.id) === Number(activeRecordingId);
 
-                            const globalRecIdx = allRecordings.findIndex(
-                              (r) => Number(r.id) === Number(rec.id)
-                            );
+                          const globalRecIdx = allRecordings.findIndex(
+                            (r) => Number(r.id) === Number(rec.id),
+                          );
 
-                            const isRecCompleted =
-                              globalRecIdx !== -1 &&
-                              globalRecIdx < completedLessonsCount;
+                          const isRecCompleted =
+                            globalRecIdx !== -1 &&
+                            globalRecIdx < completedLessonsCount;
 
-                            return (
-                              <li key={rec.id}>
-                                <button
-                                  onClick={() => {
-                                    setActiveRecordingId(rec.id);
-                                    window.scrollTo({ top: 0, behavior: "smooth" });
-                                  }}
-                                  className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
-                                    isActive
-                                      ? "bg-sky-50/90 border-l-[3px] border-l-sky-500 font-medium"
-                                      : "hover:bg-sky-50/50"
+                          return (
+                            <li key={rec.id}>
+                              <button
+                                onClick={() => {
+                                  setActiveRecordingId(rec.id);
+                                  window.scrollTo({ top: 0, behavior: "smooth" });
+                                }}
+                                className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${isActive
+                                    ? "bg-sky-50/90 border-l-[3px] border-l-sky-500 font-medium"
+                                    : "hover:bg-sky-50/50"
                                   }`}
-                                >
-                                  {isRecCompleted ? (
-                                    <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
-                                  ) : isActive ? (
-                                    <Play className="h-4 w-4 text-sky-600 fill-current shrink-0 ml-0.5" />
-                                  ) : (
-                                    <Circle className="h-5 w-5 text-slate-300 shrink-0" />
-                                  )}
+                              >
+                                {isRecCompleted ? (
+                                  <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+                                ) : isActive ? (
+                                  <Play className="h-4 w-4 text-sky-600 fill-current shrink-0 ml-0.5" />
+                                ) : (
+                                  <Circle className="h-5 w-5 text-slate-300 shrink-0" />
+                                )}
 
-                                  <div className="flex-1 min-w-0">
-                                    <p
-                                      className={`text-sm truncate ${
-                                        isActive
-                                          ? "font-semibold text-sky-950"
-                                          : isRecCompleted
+                                <div className="flex-1 min-w-0">
+                                  <p
+                                    className={`text-sm truncate ${isActive
+                                        ? "font-semibold text-sky-950"
+                                        : isRecCompleted
                                           ? "font-medium text-slate-800"
                                           : "text-slate-600"
                                       }`}
-                                    >
-                                      {rec.title}
-                                    </p>
+                                  >
+                                    {rec.title}
+                                  </p>
 
-                                    {rec.duration && (
-                                      <p className="text-xs text-slate-400">
-                                        {rec.duration}
-                                      </p>
-                                    )}
-                                  </div>
-                                </button>
-                              </li>
-                            );
-                          }
-                        )}
+                                  {rec.duration && (
+                                    <p className="text-xs text-slate-400">
+                                      {rec.duration}
+                                    </p>
+                                  )}
+                                </div>
+                              </button>
+                            </li>
+                          );
+                        })}
                       </ul>
 
                       {/* NOTES */}
@@ -1442,14 +1371,9 @@ const StudentRecordings = () => {
                           </div>
 
                           <div className="pb-2 px-2 space-y-0.5">
-                            {module.notes.map(
-                              (note) => (
-                                <StudentNoteItem
-                                  key={note.id}
-                                  note={note}
-                                />
-                              )
-                            )}
+                            {module.notes.map((note) => (
+                              <StudentNoteItem key={note.id} note={note} />
+                            ))}
                           </div>
                         </div>
                       )}
@@ -1473,50 +1397,40 @@ const StudentRecordings = () => {
                           </div>
 
                           <div className="pb-2">
-                            {module.attachments.map(
-                              (attachment) => (
-                                <a
-                                  key={attachment.id}
-                                  href={
-                                    attachment.fileUrl
-                                  }
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  download
-                                  className="flex items-center justify-between px-4 py-3 hover:bg-purple-50 transition group"
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-xs text-purple-600 font-medium hidden sm:block">
-                                      Download
-                                    </span>
+                            {module.attachments.map((attachment) => (
+                              <a
+                                key={attachment.id}
+                                href={attachment.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                download
+                                className="flex items-center justify-between px-4 py-3 hover:bg-purple-50 transition group"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-purple-600 font-medium hidden sm:block">
+                                    Download
+                                  </span>
 
-                                    <Download className="w-4 h-4 text-purple-600 group-hover:scale-110 transition-transform" />
-                                  </div>
-                                </a>
-                              )
-                            )}
+                                  <Download className="w-4 h-4 text-purple-600 group-hover:scale-110 transition-transform" />
+                                </div>
+                              </a>
+                            ))}
                           </div>
                         </div>
                       )}
                     </>
                   )}
-
                 </div>
-
               );
             })}
 
-
             {modules.length === 0 && (
               <p className="text-sm text-slate-400 text-center py-8">
-                No modules available for this
-                course yet.
+                No modules available for this course yet.
               </p>
             )}
           </div>
         </aside>
-
-
 
         {/* ==================================================
             REVIEWS — KEPT
@@ -1524,9 +1438,7 @@ const StudentRecordings = () => {
 
         {courseId && (
           <div className="min-w-0">
-            <ReviewsSection
-              courseId={courseId}
-            />
+            <ReviewsSection courseId={courseId} />
           </div>
         )}
 
@@ -1539,7 +1451,6 @@ const StudentRecordings = () => {
           course={course}
           levelData={selectedShareLevel}
           progress={courseProgress}
-          certificate={shareCertificate}
         />
       </div>
     </div>

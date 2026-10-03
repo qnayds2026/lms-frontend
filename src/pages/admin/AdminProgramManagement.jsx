@@ -50,6 +50,9 @@ const AdminProgramManagement = () => {
   const [programs, setPrograms] = useState([]);
   const [registrationCounts, setRegistrationCounts] = useState({});
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 8;
+
   const [loading, setLoading] = useState(true);
   const [countLoading, setCountLoading] = useState(false);
 
@@ -88,6 +91,7 @@ const AdminProgramManagement = () => {
       const data = response?.data?.data || [];
 
       setPrograms(data);
+      setCurrentPage(1);
     } catch (err) {
       console.error("Failed to fetch programs:", err);
 
@@ -167,6 +171,28 @@ const AdminProgramManagement = () => {
       setRegistrationCounts({});
     }
   }, [programs]);
+
+  const totalPages = Math.ceil(programs.length / ITEMS_PER_PAGE);
+
+const startItem =
+  programs.length === 0
+    ? 0
+    : (currentPage - 1) * ITEMS_PER_PAGE + 1;
+
+const endItem = Math.min(
+  currentPage * ITEMS_PER_PAGE,
+  programs.length
+);
+
+const paginatedPrograms = programs.slice(
+  (currentPage - 1) * ITEMS_PER_PAGE,
+  currentPage * ITEMS_PER_PAGE
+);
+
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages) return;
+  setCurrentPage(page);
+};
 
   // -----------------------------------------
   // OPEN CREATE MODAL
@@ -539,7 +565,7 @@ const AdminProgramManagement = () => {
               </thead>
 
               <tbody className="divide-y divide-slate-100">
-                {programs.map((program) => (
+                {paginatedPrograms.map((program) => (
                   <tr
                     key={program.id}
                     className="transition hover:bg-slate-50"
@@ -659,7 +685,106 @@ const AdminProgramManagement = () => {
               </tbody>
             </table>
           </div>
-        </div>
+          {true && (
+  <div className="flex items-center justify-between border-t border-slate-100 bg-white px-5 py-3">
+    <p className="text-xs text-slate-400">
+      showing {startItem}–{endItem} of {programs.length}
+    </p>
+
+    <div className="flex items-center gap-1">
+      {/* Previous */}
+      <button
+        type="button"
+        onClick={() => goToPage(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        ‹
+      </button>
+
+      {/* First Page */}
+      <button
+        type="button"
+        onClick={() => goToPage(1)}
+        className={`h-8 w-8 rounded-lg text-xs font-medium ${
+          currentPage === 1
+            ? "bg-sky-600 text-white"
+            : "text-slate-500 hover:bg-slate-50"
+        }`}
+      >
+        1
+      </button>
+
+      {/* Left dots */}
+      {currentPage > 3 && (
+        <span className="px-1 text-xs text-slate-400">...</span>
+      )}
+
+      {/* Previous page */}
+      {currentPage > 2 && (
+        <button
+          type="button"
+          onClick={() => goToPage(currentPage - 1)}
+          className="h-8 w-8 rounded-lg text-xs font-medium text-slate-500 hover:bg-slate-50"
+        >
+          {currentPage - 1}
+        </button>
+      )}
+
+      {/* Current page */}
+      {currentPage !== 1 && currentPage !== totalPages && (
+        <button
+          type="button"
+          className="h-8 w-8 rounded-lg bg-sky-600 text-xs font-medium text-white"
+        >
+          {currentPage}
+        </button>
+      )}
+
+      {/* Next page */}
+      {currentPage > 1 && currentPage < totalPages - 1 && (
+        <button
+          type="button"
+          onClick={() => goToPage(currentPage + 1)}
+          className="h-8 w-8 rounded-lg text-xs font-medium text-slate-500 hover:bg-slate-50"
+        >
+          {currentPage + 1}
+        </button>
+      )}
+
+      {/* Right dots */}
+      {currentPage < totalPages - 2 && (
+        <span className="px-1 text-xs text-slate-400">...</span>
+      )}
+
+      {/* Last Page */}
+      {totalPages > 1 && (
+        <button
+          type="button"
+          onClick={() => goToPage(totalPages)}
+          className={`h-8 w-8 rounded-lg text-xs font-medium ${
+            currentPage === totalPages
+              ? "bg-sky-600 text-white"
+              : "text-slate-500 hover:bg-slate-50"
+          }`}
+        >
+          {totalPages}
+        </button>
+      )}
+
+      {/* Next */}
+      <button
+        type="button"
+        onClick={() => goToPage(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        ›
+      </button>
+    </div>
+  </div>
+)}
+</div>
       )}
       
      {registrationsProgram && (

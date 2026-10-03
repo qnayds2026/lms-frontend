@@ -23,6 +23,7 @@ const NAV_LINKS = [
   { label: " Courses", href: "/admin/courses" },
   { label: "Instructors", href: "/admin/instructors" },
   { label: " Payments", href: "/admin/payments" },
+  { label: "Programs", href: "/admin/programs" },
   { label: " Certificates", href: "/admin/certificates" },
   { label: " Live Classes", href: "/instructor/live-classes" },
 ];
