@@ -4,7 +4,6 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronDown,
-  Lock,
   Terminal,
   Circle,
   Paperclip,
@@ -939,25 +938,6 @@ const StudentRecordings = () => {
   const handleSelectLevel = (module) => {
     if (!module) return;
 
-    // Check if module is locked
-    const moduleIdx = modules.findIndex((m) => m.id === module.id);
-    let remComp = Math.max(0, Number(courseProgress?.completedLessons) || 0);
-    let prevDone = true;
-    for (let i = 0; i < moduleIdx; i++) {
-      const tot = modules[i].recordings?.length || 0;
-      const comp = Math.min(remComp, tot);
-      remComp -= comp;
-      if (tot > 0 && comp < tot) {
-        prevDone = false;
-        break;
-      }
-    }
-
-    if (moduleIdx > 0 && !prevDone) {
-      alert(`Level ${moduleIdx + 1} is locked. Complete Level ${moduleIdx} first to unlock this level.`);
-      return;
-    }
-
     // Unlocked! Find first recording in this level module
     const recordings = module.recordings || [];
     if (recordings.length > 0) {
@@ -1323,64 +1303,26 @@ const StudentRecordings = () => {
             {modules.map((module, moduleIdx) => {
               const isExpanded = expandedModuleIds.has(module.id);
 
-              let remComp = Math.max(0, Number(courseProgress?.completedLessons) || 0);
-              let prevModDone = true;
-              for (let i = 0; i < moduleIdx; i++) {
-                const tot = modules[i].recordings?.length || 0;
-                const comp = Math.min(remComp, tot);
-                remComp -= comp;
-                if (tot > 0 && comp < tot) {
-                  prevModDone = false;
-                  break;
-                }
-              }
-              const isModuleLocked = moduleIdx > 0 && !prevModDone;
-
               return (
                 <div key={module.id}>
                   <button
-                    onClick={() => {
-                      if (isModuleLocked) {
-                        alert(
-                          `Level ${moduleIdx + 1} is locked. Complete Level ${moduleIdx} first to unlock.`
-                        );
-                      } else {
-                        toggleModule(module.id);
-                      }
-                    }}
-                    className={`w-full flex items-start gap-2 px-4 py-3 border-y text-left transition-colors ${
-                      isModuleLocked
-                        ? "bg-slate-50 border-slate-200 border-l-[3px] border-l-slate-300 opacity-70"
-                        : "bg-sky-50/70 border-sky-100 border-l-[3px] border-l-sky-500 hover:bg-sky-50"
-                    }`}
+                    onClick={() => toggleModule(module.id)}
+                    className="w-full flex items-start gap-2 px-4 py-3 border-y text-left transition-colors bg-sky-50/70 border-sky-100 border-l-[3px] border-l-sky-500 hover:bg-sky-50"
                   >
-                    {isModuleLocked ? (
-                      <Lock className="h-3.5 w-3.5 text-slate-400 shrink-0 mt-0.5" />
-                    ) : (
-                      <Layers className="h-3.5 w-3.5 text-sky-500 shrink-0 mt-0.5" />
-                    )}
+                    <Layers className="h-3.5 w-3.5 text-sky-500 shrink-0 mt-0.5" />
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span
-                          className={`text-[10px] font-bold uppercase tracking-wider ${
-                            isModuleLocked ? "text-slate-400" : "text-sky-600"
-                          }`}
+                          className="text-[10px] font-bold uppercase tracking-wider text-sky-600"
                           style={mono}
                         >
                           Level {moduleIdx + 1}
                         </span>
-                        {isModuleLocked && (
-                          <span className="text-[9px] font-semibold uppercase bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded">
-                            Locked
-                          </span>
-                        )}
                       </div>
 
                       <p
-                        className={`text-xs font-semibold uppercase tracking-wide leading-relaxed line-clamp-2 wrap-break-words mt-0.5 ${
-                          isModuleLocked ? "text-slate-500" : "text-sky-700"
-                        }`}
+                        className="text-xs font-semibold uppercase tracking-wide leading-relaxed line-clamp-2 wrap-break-words mt-0.5 text-sky-700"
                         style={mono}
                       >
                         {module.title}
@@ -1405,9 +1347,7 @@ const StudentRecordings = () => {
                     </div>
 
                     <ChevronDown
-                      className={`h-4 w-4 ${
-                        isModuleLocked ? "text-slate-400" : "text-sky-500"
-                      } shrink-0 mt-0.5 transition-transform duration-200 ${
+                      className={`h-4 w-4 text-sky-500 shrink-0 mt-0.5 transition-transform duration-200 ${
                         isExpanded ? "rotate-180" : ""
                       }`}
                     />
@@ -1418,7 +1358,7 @@ const StudentRecordings = () => {
                       <ul className="divide-y divide-slate-100">
                         {module.recordings.length === 0 && (
                           <li className="px-4 py-3 text-xs text-slate-400 flex items-center gap-2">
-                            <Lock className="h-3.5 w-3.5" />
+                            <Video className="h-3.5 w-3.5" />
                             No lessons published yet
                           </li>
                         )}
@@ -1440,26 +1380,16 @@ const StudentRecordings = () => {
                               <li key={rec.id}>
                                 <button
                                   onClick={() => {
-                                    if (isModuleLocked) {
-                                      alert(
-                                        `Level ${moduleIdx + 1} is locked. Complete Level ${moduleIdx} first to unlock.`
-                                      );
-                                    } else {
-                                      setActiveRecordingId(rec.id);
-                                      window.scrollTo({ top: 0, behavior: "smooth" });
-                                    }
+                                    setActiveRecordingId(rec.id);
+                                    window.scrollTo({ top: 0, behavior: "smooth" });
                                   }}
                                   className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
-                                    isModuleLocked
-                                      ? "cursor-not-allowed opacity-60 bg-slate-50"
-                                      : isActive
+                                    isActive
                                       ? "bg-sky-50/90 border-l-[3px] border-l-sky-500 font-medium"
                                       : "hover:bg-sky-50/50"
                                   }`}
                                 >
-                                  {isModuleLocked ? (
-                                    <Lock className="h-4 w-4 text-slate-400 shrink-0" />
-                                  ) : isRecCompleted ? (
+                                  {isRecCompleted ? (
                                     <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
                                   ) : isActive ? (
                                     <Play className="h-4 w-4 text-sky-600 fill-current shrink-0 ml-0.5" />
