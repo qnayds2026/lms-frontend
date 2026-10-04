@@ -16,6 +16,7 @@ import {
   Loader2,
   Star,
   MessageSquare,
+  CheckCircle2,
 } from "lucide-react";
 import api from "../../api/axios";
 
@@ -35,7 +36,7 @@ function formatINR(n) {
 function RowSkeleton() {
   return (
     <tr className="border-t border-slate-100">
-      <td colSpan={6} className="px-5 py-4">
+      <td colSpan={7} className="px-5 py-4">
         <div className="h-4 bg-slate-100 rounded animate-pulse" />
       </td>
     </tr>
@@ -649,6 +650,77 @@ function AdminReviewsModal({ course, onClose }) {
   );
 }
 
+// --- NEW: confirmation before finalizing a course for certification ---
+function CompleteCourseModal({ course, onClose, onCompleted }) {
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleConfirm = async () => {
+    setError("");
+    setSaving(true);
+    try {
+      const res = await api.put(`/courses/${course.id}`, {
+        status: "COMPLETED",
+      });
+      onCompleted(res.data);
+      onClose();
+    } catch (err) {
+      setError(err?.response?.data?.message || "Failed to complete course.");
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/40 flex items-center justify-center z-50 px-4">
+      <div className="bg-white rounded-2xl w-full max-w-md p-6 relative">
+        <button
+          onClick={onClose}
+          disabled={saving}
+          className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 disabled:opacity-50"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <h3 className="text-lg font-semibold text-slate-900" style={display}>
+          Complete Course?
+        </h3>
+        <p className="text-xs text-slate-500 mt-0.5 truncate">{course.title}</p>
+
+        <p className="mt-4 text-sm text-slate-600 leading-relaxed">
+          This will finalize the course for certificate eligibility. Students
+          who have not completed all current recordings will continue learning.
+          Their pending recordings will not be marked as completed
+          automatically.
+        </p>
+
+        {error && (
+          <div className="mt-4 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-600">
+            {error}
+          </div>
+        )}
+
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            onClick={onClose}
+            disabled={saving}
+            className="px-4 py-2 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleConfirm}
+            disabled={saving}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-violet-600 text-white text-sm font-medium hover:bg-violet-700 disabled:opacity-60 transition-colors"
+          >
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+            {saving ? "Completing..." : "Complete Course"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminCourses() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -658,6 +730,8 @@ export default function AdminCourses() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState(null);
   const [reviewsCourse, setReviewsCourse] = useState(null);
+  const [completingCourse, setCompletingCourse] = useState(null);
+  const [notice, setNotice] = useState("");
 
   useEffect(() => {
     async function fetchCourses() {
@@ -710,6 +784,47 @@ export default function AdminCourses() {
     setCourses((prev) =>
       prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)),
     );
+  };
+
+  const handleCourseCompleted = (updated) => {
+    setCourses((prev) =>
+      prev.map((c) =>
+        c.id === updated.id ? { ...c, status: updated.status } : c,
+      ),
+    );
+    const n = updated.completedStudents ?? 0;
+    setNotice(
+      `"${updated.title}" is finalized for certification. ${n} student${
+        n === 1 ? "" : "s"
+      } who had already completed every recording ${
+        n === 1 ? "was" : "were"
+      } issued a certificate. Everyone else keeps learning at their current progress.`,
+    );
+  };
+
+    const handleReopen = async (course) => {
+    if (
+      !confirm(
+        `Mark "${course.title}" as Not Completed? Certificates already issued stay valid. New certificates will be issued only after you complete the course again.`,
+      )
+    ) {
+      return;
+    }
+    try {
+      const res = await api.put(`/courses/${course.id}`, {
+        status: "ONGOING",
+      });
+      setCourses((prev) =>
+        prev.map((c) =>
+          c.id === course.id ? { ...c, status: res.data.status } : c,
+        ),
+      );
+      setNotice(
+        `"${course.title}" is marked Not Completed. Existing certificates remain valid.`,
+      );
+    } catch (err) {
+      alert(err?.response?.data?.message || "Failed to update course.");
+    }
   };
 
   const filtered = courses.filter((c) => {
@@ -792,6 +907,18 @@ export default function AdminCourses() {
         </div>
       )}
 
+      {notice && (
+        <div className="mt-6 flex items-start justify-between gap-3 rounded-xl bg-violet-50 border border-violet-200 px-4 py-3 text-sm text-violet-700">
+          <span>{notice}</span>
+          <button
+            onClick={() => setNotice("")}
+            className="shrink-0 text-violet-400 hover:text-violet-600"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Table */}
       <div className="mt-6 bg-white rounded-2xl border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
@@ -806,6 +933,7 @@ export default function AdminCourses() {
                 <th className="px-5 py-3 font-medium">Price</th>
                 <th className="px-5 py-3 font-medium">Students</th>
                 <th className="px-5 py-3 font-medium">Status</th>
+                <th className="px-5 py-3 font-medium">Completion</th>
                 <th className="px-5 py-3 font-medium text-right">Actions</th>
               </tr>
             </thead>
@@ -857,22 +985,57 @@ export default function AdminCourses() {
                       </span>
                     </td>
                     <td className="px-5 py-3">
+                      <span
+                        className={`inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                          course.status === "COMPLETED"
+                            ? "bg-violet-50 text-violet-600 border-violet-200"
+                            : "bg-slate-100 text-slate-500 border-slate-200"
+                        }`}
+                      >
+                        {course.status === "COMPLETED"
+                          ? "Completed"
+                          : "Not Completed"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3">
                       <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => handleTogglePublish(course)}
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                            course.isPublished
-                              ? "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                              : "bg-sky-600 text-white hover:bg-sky-700"
-                          }`}
-                        >
-                          {course.isPublished ? (
-                            <EyeOff className="h-3.5 w-3.5" />
-                          ) : (
-                            <Eye className="h-3.5 w-3.5" />
-                          )}
-                          {course.isPublished ? "Unpublish" : "Publish"}
-                        </button>
+                          <button
+                            onClick={() => handleTogglePublish(course)}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                              course.isPublished
+                                ? "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                : "bg-sky-600 text-white hover:bg-sky-700"
+                            }`}
+                          >
+                            {course.isPublished ? (
+                              <EyeOff className="h-3.5 w-3.5" />
+                            ) : (
+                              <Eye className="h-3.5 w-3.5" />
+                            )}
+                            {course.isPublished ? "Unpublish" : "Publish"}
+                          </button>
+                        
+                        {course.status !== "COMPLETED" && (
+                          <button
+                            onClick={() => setCompletingCourse(course)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-violet-50 text-violet-700 hover:bg-violet-100 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-violet-50 transition-colors"
+                            title="Mark course as completed"
+                          >
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            Complete
+                          </button>
+                        )}
+                        
+                                                {course.status === "COMPLETED" && (
+                          <button
+                            onClick={() => handleReopen(course)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+                            title="Mark course as Not Completed"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                            Undo Complete
+                          </button>
+                        )}
                         <button
                           onClick={() => setEditingCourse(course)}
                           className="flex items-center justify-center h-8 w-8 rounded-lg text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-colors"
@@ -916,7 +1079,7 @@ export default function AdminCourses() {
               {!loading && filtered.length === 0 && (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className="px-5 py-10 text-center text-sm text-slate-400"
                   >
                     No courses match your filters.
@@ -947,6 +1110,14 @@ export default function AdminCourses() {
         <AdminReviewsModal
           course={reviewsCourse}
           onClose={() => setReviewsCourse(null)}
+        />
+      )}
+
+      {completingCourse && (
+        <CompleteCourseModal
+          course={completingCourse}
+          onClose={() => setCompletingCourse(null)}
+          onCompleted={handleCourseCompleted}
         />
       )}
     </div>

@@ -517,6 +517,7 @@ const StudentRecordings = () => {
   // Level & course achievement share modal state
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [selectedShareLevel, setSelectedShareLevel] = useState(null);
+  const [myCertificate, setMyCertificate] = useState(null);
 
   const [activeRecordingId, setActiveRecordingId] = useState(null);
 
@@ -543,6 +544,22 @@ const StudentRecordings = () => {
       return null;
     }
   }, [courseId]);
+
+  const fetchMyCertificate = useCallback(async () => {
+  if (!courseId) return;
+  try {
+    const res = await api.get("/certificates/my");
+    const list = res.data?.data || [];
+    const found = list.find(
+      (c) =>
+        Number(c.courseId ?? c.course?.id) === Number(courseId) &&
+        !c.programRegistration,
+    );
+    setMyCertificate(found || null);
+  } catch (err) {
+    console.error("Failed to fetch certificate:", err);
+  }
+}, [courseId]);
 
   // ======================================================
   // NATURAL SORTING HELPER
@@ -692,6 +709,9 @@ const StudentRecordings = () => {
     const refreshWhenVisible = () => {
       if (document.visibilityState === "visible") {
         fetchCourseAndRecordings();
+        useEffect(() => {
+        fetchMyCertificate();
+      }, [fetchMyCertificate]);
       }
     };
 
@@ -748,6 +768,9 @@ const StudentRecordings = () => {
         `/progress/recordings/${activeRecordingId}/complete`,
       );
       const resData = completeRes?.data?.data;
+      if (resData?.certificate) {
+        setMyCertificate(resData.certificate);
+      }
 
       // Refresh lesson data and progress without resetting the active lesson.
       const refreshedData = await fetchCourseAndRecordings();
@@ -1202,6 +1225,7 @@ const StudentRecordings = () => {
             activeModuleId={activeRecording?.moduleId}
             onSelectLevel={handleSelectLevel}
             onShareLevel={(mod) => {
+              certificate={myCertificate}
               setSelectedShareLevel(mod);
               setShareModalOpen(true);
             }}

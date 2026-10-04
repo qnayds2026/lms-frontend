@@ -1,11 +1,12 @@
 import { Trophy, Check, Flame, Play, Share2, Award } from "lucide-react";
-
+import { Link } from "react-router-dom";
 const CourseProgress = ({
   progress,
   modules = [],
   onSelectLevel,
   onShareLevel,
   activeModuleId,
+  certificate = null,
 }) => {
   if (!progress) return null;
 
@@ -251,7 +252,9 @@ const CourseProgress = ({
                 </p>
 
                 <p className="text-xs text-emerald-700">
-                  Your certificate is ready to unlock.
+                    {certificate
+                      ? "Your certificate is ready."
+                      : "All lessons done. Your certificate will be issued once the course is finalized by admin. You can keep watching anytime."}
                 </p>
               </div>
             </div>
@@ -274,12 +277,14 @@ const CourseProgress = ({
                 </button>
               )}
 
-              <button
-                type="button"
-                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 cursor-pointer"
-              >
-                View Certificate
-              </button>
+              {certificate && (
+                <Link
+                  to={`/student/certificates/${certificate.id}`}
+                  className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 cursor-pointer"
+                >
+                  View Certificate
+                </Link>
+              )}
             </div>
           </div>
         </div>
