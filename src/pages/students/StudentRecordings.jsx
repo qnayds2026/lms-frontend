@@ -1225,10 +1225,11 @@ const StudentRecordings = () => {
             activeModuleId={activeRecording?.moduleId}
             onSelectLevel={handleSelectLevel}
             onShareLevel={(mod) => {
-              certificate={myCertificate}
+             
               setSelectedShareLevel(mod);
               setShareModalOpen(true);
             }}
+            certificate={myCertificate}
           />
         </div>
 
