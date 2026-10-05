@@ -705,13 +705,10 @@ const StudentRecordings = () => {
     return () => window.clearTimeout(timeoutId);
   }, [fetchCourseAndRecordings]);
 
-  useEffect(() => {
+    useEffect(() => {
     const refreshWhenVisible = () => {
       if (document.visibilityState === "visible") {
         fetchCourseAndRecordings();
-        useEffect(() => {
-        fetchMyCertificate();
-      }, [fetchMyCertificate]);
       }
     };
 
@@ -720,6 +717,9 @@ const StudentRecordings = () => {
       document.removeEventListener("visibilitychange", refreshWhenVisible);
   }, [fetchCourseAndRecordings]);
 
+  useEffect(() => {
+    fetchMyCertificate();
+  }, [fetchMyCertificate]);
   // ======================================================
   // RECORDINGS LIST IN STRICT SEQUENTIAL ORDER
   // ======================================================
@@ -1230,6 +1230,7 @@ const StudentRecordings = () => {
               setShareModalOpen(true);
             }}
             certificate={myCertificate}
+            courseFinalized={course?.status === "COMPLETED"}
           />
         </div>
 
