@@ -21,6 +21,8 @@ import {
   BookOpen,
   Calendar,
   Hash,
+  Share2,
+
 } from "lucide-react";
 
 const display = { fontFamily: "'Space Grotesk', sans-serif" };
@@ -47,6 +49,61 @@ function initialsOf(name) {
       .join("")
       .toUpperCase() || "S"
   );
+}
+
+
+async function sharePendingOnWhatsApp(payments) {
+  const pending = payments.filter((p) => p.status === "PENDING");
+
+  if (pending.length === 0) {
+    alert("No pending payments to export.");
+    return;
+  }
+
+  const total = pending.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+  const today = new Date().toLocaleDateString("en-IN");
+
+  const lines = pending.map((p, i) => {
+    const name = p.student?.name || "-";
+    const course = p.course?.title || "-";
+    const amount = Number(p.amount || 0).toLocaleString("en-IN");
+    const method = p.paymentMethod || "-";
+    const phone = p.student?.phone ? `\n    ${p.student.phone}` : "";
+    return `${i + 1}. *${name}*\n    ${course}\n    Rs.${amount} (${method})${phone}`;
+  });
+
+  const text = [
+    `*QNAYDS - Pending Payments*`,
+    `Date: ${today}`,
+    `Total: ${pending.length} pending | Rs.${total.toLocaleString("en-IN")}`,
+    ``,
+    ...lines,
+  ].join("\n");
+
+  // Mobile: native share sheet 
+  if (navigator.share && /Android|iPhone|iPad/i.test(navigator.userAgent)) {
+    try {
+      await navigator.share({ text });
+      return;
+    } catch (e) {
+      if (e.name === "AbortError") return;
+    }
+  }
+
+  // Desktop: WhatsApp Web / app
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (_) {}
+
+  if (text.length <= 3500) {
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+  } else {
+    
+    window.open("https://web.whatsapp.com/", "_blank");
+    alert(
+      "List valuthaanu. Message copy cheythittund - WhatsApp chat-il paste cheyyuka (Ctrl+V).",
+    );
+  }
 }
 
 function StatCard({ title, value, icon, color }) {
@@ -400,6 +457,14 @@ const AdminPaymentList = () => {
             <option value="PENDING">Pending</option>
             <option value="SUCCESS">Success</option>
           </select>
+          <button
+            onClick={() => sharePendingOnWhatsApp(payments)}
+            disabled={pendingCount === 0}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-sm font-medium transition whitespace-nowrap"
+          >
+            <Share2 className="w-4 h-4" />
+            Export Pending ({pendingCount})
+          </button>
         </div>
       </div>
 
